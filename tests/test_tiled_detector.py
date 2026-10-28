@@ -59,6 +59,21 @@ def test_non_maximum_suppression_removes_duplicates():
     assert 0.75 not in confidences
 
 
+def test_non_maximum_suppression_removes_nested_false_face_box():
+    outer = DetectionResult(
+        bbox=BoundingBox(x=495, y=480, w=366, h=440),
+        confidence=0.92,
+    )
+    nested = DetectionResult(
+        bbox=BoundingBox(x=596, y=405, w=272, h=219),
+        confidence=0.87,
+    )
+
+    result = non_maximum_suppression([outer, nested])
+
+    assert result == [outer]
+
+
 def test_sort_detections_classroom_order():
     # Row 1 (back row, y ~ 100)
     d_r1_c2 = DetectionResult(bbox=BoundingBox(x=300, y=105, w=40, h=40), confidence=0.9)

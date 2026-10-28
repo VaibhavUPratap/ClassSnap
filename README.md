@@ -191,6 +191,10 @@ Attendance confirmation is blocked until every proposed detection has been
 reviewed. Corrections after confirmation require a reviewer identity and
 reason and are recorded as audit events.
 
+The detector suppresses nested duplicate face boxes from the tiled image
+passes before matching. This prevents one real face from producing both a
+matched and an unrelated absent proposal.
+
 When a session is created, the dashboard records the class date and start time
 in `attendance_sessions.class_at`. This is separate from the audit timestamp
 `created_at` and is the timestamp used by the reports dashboard and its date

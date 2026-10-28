@@ -77,7 +77,7 @@ class TiledFaceDetector:
         tile_size: int = 640,
         overlap_ratio: float = 0.25,
         iou_merge_threshold: float = 0.40,
-        containment_threshold: float = 0.85,
+        containment_threshold: float = 0.60,
         run_full_image_pass: bool = True,
     ):
         self.base_detector = base_detector

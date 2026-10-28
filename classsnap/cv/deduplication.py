@@ -13,7 +13,7 @@ logger = get_logger("cv.deduplication")
 def non_maximum_suppression(
     detections: List[DetectionResult],
     iou_threshold: float = 0.40,
-    containment_threshold: float = 0.85,
+    containment_threshold: float = 0.60,
 ) -> List[DetectionResult]:
     """
     Suppresses duplicate face detections across full-image and tile passes.
@@ -25,6 +25,8 @@ def non_maximum_suppression(
         detections: List of DetectionResult candidates.
         iou_threshold: Maximum allowable IoU between distinct face detections (default 0.40).
         containment_threshold: Ratio at which a smaller nested box is treated as a duplicate.
+            A lower threshold handles oversized classroom portraits where the detector can
+            emit a second box around only part of the same face.
 
     Returns:
         Deduplicated list of DetectionResult objects sorted by confidence.
