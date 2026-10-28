@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>ClassSnap Review</title>
+    <link rel="stylesheet" href="/review/styles.css">
+  </head>
+  <body>
+    <main class="shell">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">ClassSnap</p>
+          <h1>Attendance review workspace</h1>
+          <p class="subtitle">Prepare a classroom image, inspect proposed identities, and confirm only after human review.</p>
+        </div>
+        <span class="privacy-badge">Local processing</span>
+      </header>
+
+      <section class="grid" aria-label="Attendance workflow">
+        <article class="card">
+          <div class="card-heading">
+            <span class="step">01</span>
+            <div>
+              <h2>Start a session</h2>
+              <p>Give this attendance capture a recognizable name.</p>
+            </div>
+          </div>
+          <form id="session-form">
+            <label for="session-name">Session name</label>
+            <input id="session-name" name="name" required maxlength="255" placeholder="Physics 101 · 26 Oct">
+            <button type="submit">Create session</button>
+          </form>
+        </article>
+
+        <article class="card">
+          <div class="card-heading">
+            <span class="step">02</span>
+            <div>
+              <h2>Process classroom image</h2>
+              <p>Images are processed in memory and are not retained by default.</p>
+            </div>
+          </div>
+          <form id="image-form">
+            <label for="classroom-image">Classroom image</label>
+            <input id="classroom-image" type="file" accept="image/*" required>
+            <button id="process-button" type="submit" disabled>Process image</button>
+          </form>
+        </article>
+      </section>
+
+      <section class="status-card" aria-live="polite">
+        <div class="status-dot" id="status-dot"></div>
+        <div>
+          <p class="eyebrow">Workflow status</p>
+          <h2 id="status-title">No session selected</h2>
+          <p id="status-message">Create a session to begin.</p>
+        </div>
+      </section>
+      <section class="review-card" id="review-card" hidden>
+        <div class="card-heading">
+          <span class="step">03</span>
+          <div>
+            <h2>Review proposals</h2>
+            <p>Every detection must be reviewed before attendance can be confirmed.</p>
+          </div>
+        </div>
+        <div id="review-list"></div>
+        <button id="confirm-button" type="button" disabled>Confirm attendance</button>
+      </section>
+
+      <footer>
+        <span>Human confirmation is required before attendance is finalized.</span>
+        <span id="session-reference"></span>
+      </footer>
+    </main>
+    <script src="/review/app.js" defer></script>
+  </body>
+</html>

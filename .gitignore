@@ -1,0 +1,70 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual Environments
+.venv/
+venv/
+ENV/
+env/
+
+# Environment and Secrets
+.env
+.env.local
+*.secret
+*.pem
+*.key
+
+# Database and Persistence
+*.db
+*.sqlite
+*.sqlite3
+
+# Biometric and Student Data Protection (Mandatory Rule)
+data/
+uploads/
+enrollment_photos/
+classroom_photos/
+biometrics/
+exports/*.csv
+exports/*.xlsx
+!exports/.gitkeep
+
+# Testing and Coverage
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.nox/
+
+# IDE and Editor
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Logs
+logs/
+*.log
