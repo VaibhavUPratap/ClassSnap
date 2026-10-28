@@ -111,7 +111,9 @@ function Students({ students, refresh, setPage, notify }) {
 }
 
 function StudentRow({ student, setPage, refresh, notify }) {
+  const [expanded, setExpanded] = useState(false);
   const initials = `${student.first_name[0]}${student.last_name[0]}`.toUpperCase();
+  const templates = student.templates || [];
   const remove = async () => {
     if (!window.confirm(`Remove ${student.first_name} ${student.last_name} (${student.student_id}) from the roster?`)) return;
     try {
@@ -122,7 +124,16 @@ function StudentRow({ student, setPage, refresh, notify }) {
       notify(error.message, true);
     }
   };
-  return <tr><td><span className="student-name"><span className="avatar">{initials}</span><strong>{student.first_name} {student.last_name}</strong></span></td><td>{student.student_id}</td><td><span className={`pill ${student.has_consent ? "green" : "gray"}`}>{student.has_consent ? "Recorded" : "Required"}</span></td><td>{student.enrolled_templates_count}</td><td className="row-actions"><Button variant="secondary" onClick={() => setPage("enroll")}>Enroll</Button><Button variant="danger" onClick={remove}>Remove</Button></td></tr>;
+  return <>
+    <tr className={expanded ? "student-row expanded" : "student-row"}>
+      <td><span className="student-name"><span className="avatar">{initials}</span><span><strong>{student.first_name} {student.last_name}</strong><small>{student.email || "No email added"}</small></span></span></td>
+      <td><strong className="student-id">{student.student_id}</strong></td>
+      <td><span className={`pill ${student.has_consent ? "green" : "gray"}`}>{student.has_consent ? "Recorded" : "Required"}</span></td>
+      <td><button className={`template-summary ${templates.length ? "enrolled" : "missing"}`} onClick={() => setExpanded(!expanded)} aria-expanded={expanded}><span className="template-icon">{templates.length ? "✓" : "!"}</span><span><strong>{templates.length} {templates.length === 1 ? "template" : "templates"}</strong><small>{templates.length ? "View enrollment details" : "Face not enrolled"}</small></span><span className="chevron">{expanded ? "⌃" : "⌄"}</span></button></td>
+      <td className="row-actions"><Button variant="secondary" onClick={() => setPage("enroll")}>{templates.length ? "Add face" : "Enroll"}</Button><Button variant="danger" onClick={remove}>Remove</Button></td>
+    </tr>
+    {expanded && <tr className="template-detail-row"><td colSpan="5"><div className="template-detail"><div className="template-detail-heading"><div><p className="eyebrow">Stored face references</p><h3>{templates.length ? `${templates.length} enrolled ${templates.length === 1 ? "template" : "templates"}` : "No face template enrolled"}</h3><p className="muted">{templates.length ? "These model references are used for attendance matching. Raw face images are not retained here." : "Enroll a clear, consented face image before taking attendance."}</p></div><Button variant="secondary" onClick={() => setPage("enroll")}>{templates.length ? "Add another template" : "Enroll face"}</Button></div>{templates.length ? <div className="template-grid">{templates.map((template, index) => <article className="template-card" key={template.id}><div className="template-card-top"><span className="template-number">#{index + 1}</span>{template.is_primary && <span className="pill blue">Primary</span>}</div><dl><div><dt>Recognition model</dt><dd>{template.model_name} · {template.model_version}</dd></div><div><dt>Vector size</dt><dd>{template.embedding_dim} dimensions</dd></div><div><dt>Quality score</dt><dd>{Math.round(template.quality_score * 100)}% <span className="quality-bar"><i style={{ width: `${Math.min(100, Math.max(0, template.quality_score * 100))}%` }} /></span></dd></div><div><dt>Enrolled</dt><dd>{new Date(template.created_at).toLocaleString()}</dd></div></dl></article>)}</div> : <div className="template-empty">No biometric template is linked to this student yet.</div>}</div></td></tr>}
+  </>;
 }
 
 function Field({ label, className = "", ...props }) {

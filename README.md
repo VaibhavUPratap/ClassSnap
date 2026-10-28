@@ -130,6 +130,10 @@ separate navigation for:
 
 The dashboard also includes responsive mobile navigation, loading and empty
 states, visible API error feedback, accessible labels, and privacy messaging.
+The Students page shows whether each student has enrolled face templates and
+can expand a student to inspect the recognition model, vector dimensions,
+quality score, primary-reference status, and enrollment time. Raw face images
+and biometric vectors are not displayed.
 Student records use a USN as the student ID. The required format is three
 uppercase letters, two digits, two uppercase letters, and four digits, for
 example `ENG24AM0107`.
