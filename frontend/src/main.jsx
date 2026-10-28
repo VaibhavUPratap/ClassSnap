@@ -3,6 +3,7 @@ import { createRoot } from "react-dom/client";
 import "./styles.css";
 
 const API = "/api/v1";
+const USN_PATTERN = /^[A-Z]{3}[0-9]{2}[A-Z]{2}[0-9]{4}$/;
 
 async function request(path, options = {}) {
   const response = await fetch(`${API}${path}`, options);
@@ -68,9 +69,20 @@ function Stat({ icon, tone, label, value }) {
 
 function Students({ students, refresh, setPage, notify }) {
   const [form, setForm] = useState({ first_name: "", last_name: "", student_id: "", email: "", has_consent: false, consent_notes: "" });
-  const update = (event) => setForm({ ...form, [event.target.name]: event.target.type === "checkbox" ? event.target.checked : event.target.value });
+  const update = (event) => {
+    const value = event.target.type === "checkbox"
+      ? event.target.checked
+      : event.target.name === "student_id"
+        ? event.target.value.trim().toUpperCase()
+        : event.target.value;
+    setForm({ ...form, [event.target.name]: value });
+  };
   const submit = async (event) => {
     event.preventDefault();
+    if (!USN_PATTERN.test(form.student_id)) {
+      notify("Enter a valid USN such as ENG24AM0107.", true);
+      return;
+    }
     try {
       await request("/students?actor=web-admin", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(form) });
       setForm({ first_name: "", last_name: "", student_id: "", email: "", has_consent: false, consent_notes: "" });
@@ -86,7 +98,7 @@ function Students({ students, refresh, setPage, notify }) {
       </tbody></table></div>
     </div>
     <div className="content-card add-card"><div><p className="eyebrow">New record</p><h2>Add a student</h2><p>Create a roster record before enrolling a face.</p></div><form className="form-grid" onSubmit={submit}>
-      <Field label="First name" name="first_name" value={form.first_name} onChange={update} required /><Field label="Last name" name="last_name" value={form.last_name} onChange={update} required /><Field label="USN" name="student_id" value={form.student_id} onChange={update} pattern="[A-Za-z]{3}[0-9]{2}[A-Za-z]{2}[0-9]{4}" title="Use the format ENG24AM0107" placeholder="ENG24AM0107" required /><Field label="Email (optional)" name="email" type="email" value={form.email} onChange={update} />
+      <Field label="First name" name="first_name" value={form.first_name} onChange={update} required /><Field label="Last name" name="last_name" value={form.last_name} onChange={update} required /><Field label="USN" name="student_id" value={form.student_id} onChange={update} inputMode="text" maxLength="11" title="Use the format ENG24AM0107" placeholder="ENG24AM0107" required /><Field label="Email (optional)" name="email" type="email" value={form.email} onChange={update} />
       <label className="checkbox-label"><input name="has_consent" type="checkbox" checked={form.has_consent} onChange={update} /> Consent is recorded</label><Field className="full" label="Consent notes (optional)" name="consent_notes" value={form.consent_notes} onChange={update} /><Button className="full" type="submit">Add student</Button>
     </form></div>
   </section>;
