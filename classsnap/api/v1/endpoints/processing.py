@@ -11,7 +11,9 @@ from classsnap.schemas.attendance import AttendanceSessionResponse
 from classsnap.services.attendance_service import AttendanceService
 from classsnap.services.enrollment_service import EnrollmentService
 from classsnap.services.matching_service import MatchingService
+from classsnap.services.matching_service import STATUS_AMBIGUOUS, STATUS_MATCHED
 from classsnap.cv.engine import CVEngine
+from classsnap.cv.geometry import compute_iou
 
 from classsnap.api.v1.endpoints.attendance import _session_response
 from classsnap.api.v1.upload import read_image_upload
@@ -38,7 +40,10 @@ async def process_classroom_image(
             roster_embeddings[student.id] = (student.full_name, embedding, model_version)
 
     detections, _ = cv_engine.process_image(
-        await read_image_upload(image), extract_embeddings=True
+        await read_image_upload(image),
+        score_threshold=0.40,
+        extract_embeddings=True,
+        use_tiling=False,
     )
     matcher = MatchingService()
     detection_inputs = [
@@ -52,6 +57,26 @@ async def process_classroom_image(
         for detection in detections
     ]
     matches = matcher.match_all(detection_inputs, roster_embeddings, model_version)
+    positive_detections = {
+        result.detection_id
+        for result in matches
+        if result.status in {STATUS_MATCHED, STATUS_AMBIGUOUS}
+        and result.top_candidate is not None
+        and result.top_candidate.similarity >= matcher.thresholds.accept
+    }
+    detection_by_id = {detection.detection_id: detection for detection in detections}
+    suppressed_unknowns = {
+        result.detection_id
+        for result in matches
+        if result.detection_id not in positive_detections
+        and any(
+            compute_iou(
+                detection_by_id[result.detection_id].bbox,
+                detection_by_id[positive_id].bbox,
+            ) >= 0.15
+            for positive_id in positive_detections
+        )
+    }
     proposals = [
         (
             result.detection_id,
@@ -61,6 +86,7 @@ async def process_classroom_image(
             result.rejection_reason,
         )
         for result in matches
+        if result.detection_id not in suppressed_unknowns
     ]
     session = AttendanceService.add_proposals(db, session_id, proposals)
     return _session_response(session)

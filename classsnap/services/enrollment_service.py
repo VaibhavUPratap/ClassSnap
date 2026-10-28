@@ -103,6 +103,18 @@ class EnrollmentService:
 
         # 5. Assess face quality
         quality = self.cv_engine.quality_assessor.assess_quality(image, face_detection)
+        if quality.is_usable and 0 < quality.min_dimension < 80:
+            raise BiometricProcessingError(
+                message=(
+                    "Enrollment failed: the detected face is too small "
+                    f"({quality.min_dimension}px). Use a clear portrait where the face "
+                    "is prominent and not a background graphic."
+                ),
+                details={
+                    "student_id": student.student_id,
+                    "min_dimension": quality.min_dimension,
+                },
+            )
         if not quality.is_usable:
             raise BiometricProcessingError(
                 message=f"Enrollment failed: Face quality is insufficient ({quality.rejection_reason}). "

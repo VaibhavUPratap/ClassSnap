@@ -13,7 +13,7 @@ def test_classroom_image_processing_creates_review_proposals(client, monkeypatch
     )
     fake_engine = SimpleNamespace(
         embedder=SimpleNamespace(model_version="test-model"),
-        process_image=lambda image, extract_embeddings: ([detection], image),
+        process_image=lambda image, **kwargs: ([detection], image),
     )
     monkeypatch.setattr(
         CVEngine,

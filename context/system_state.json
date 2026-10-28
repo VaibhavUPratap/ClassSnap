@@ -1,7 +1,7 @@
 {
   "project": "ClassSnap",
   "last_updated": "2026-10-28T23:59:00+05:30",
-  "current_phase": 20,
+  "current_phase": 21,
   "phases": {
     "phase_0": {"name": "Requirements Analysis and System Architecture", "status": "COMPLETED"},
     "phase_1": {"name": "Project Foundation and Development Environment", "status": "COMPLETED"},
@@ -23,7 +23,8 @@
     "phase_17": {"name": "Roster Response Serialization Fix", "status": "COMPLETED", "context_file": "context/phase_17_context.md"},
     "phase_18": {"name": "Daily Attendance Reports Dashboard", "status": "COMPLETED", "context_file": "context/phase_18_context.md"},
     "phase_19": {"name": "Explicit Attendance Date and Time", "status": "COMPLETED", "context_file": "context/phase_19_context.md"},
-    "phase_20": {"name": "Attendance Matching Verification and Duplicate Suppression", "status": "COMPLETED", "context_file": "context/phase_20_context.md"}
+    "phase_20": {"name": "Attendance Matching Verification and Duplicate Suppression", "status": "COMPLETED", "context_file": "context/phase_20_context.md"},
+    "phase_21": {"name": "Two-Student Attendance Matching", "status": "COMPLETED", "context_file": "context/phase_21_context.md"}
   },
   "key_architectural_decisions": [
     "Modular pluggable CV interfaces (FaceDetector, EmbeddingExtractor, FaceQualityAssessor, FaceAnnotator)",

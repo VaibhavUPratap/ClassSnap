@@ -195,6 +195,12 @@ The detector suppresses nested duplicate face boxes from the tiled image
 passes before matching. This prevents one real face from producing both a
 matched and an unrelated absent proposal.
 
+For high-resolution classroom photos, attendance matching also runs a
+full-image pass at a lower detection threshold so smaller faces are not missed.
+Low-confidence overlapping boxes are removed when a valid enrolled match is
+already present. Enrollment rejects usable face detections smaller than 80px
+to prevent background graphics from being stored as student templates.
+
 When a session is created, the dashboard records the class date and start time
 in `attendance_sessions.class_at`. This is separate from the audit timestamp
 `created_at` and is the timestamp used by the reports dashboard and its date
