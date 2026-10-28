@@ -36,3 +36,18 @@ def test_confirmed_attendance_exports_csv_and_xlsx(db_session):
     assert xlsx_content[:2] == b"PK"
     assert "spreadsheet" in xlsx_type
     assert xlsx_name.endswith(".xlsx")
+
+
+def test_reports_exclude_reviewed_but_unconfirmed_sessions(db_session):
+    session = AttendanceService.create_session(db_session, "Pending Report Session")
+    AttendanceService.begin_processing(db_session, session.id)
+    AttendanceService.add_proposals(
+        db_session, session.id, [("face-pending", "unknown", None, None, "Needs review")]
+    )
+    AttendanceService.review_detection(
+        db_session, session.id, "face-pending", None, False, actor="teacher-1"
+    )
+
+    report = ReportService.confirmed_sessions(db_session)
+
+    assert session.id not in {row.session_id for row in report.sessions}
