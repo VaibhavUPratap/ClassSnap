@@ -134,6 +134,7 @@ function Enroll({ students, refresh, notify }) {
   const [consent, setConsent] = useState(false);
   const submit = async (event) => {
     event.preventDefault();
+    const formElement = event.currentTarget;
     const form = new FormData();
     form.append("image", image);
     form.append("consent_granted", consent);
@@ -141,7 +142,7 @@ function Enroll({ students, refresh, notify }) {
     try {
       await request(`/students/${encodeURIComponent(studentId)}/enrollment`, { method: "POST", body: form });
       setStudentId(""); setImage(null); setConsent(false); setConsentNotes("");
-      event.currentTarget.reset(); await refresh(); notify("Face enrolled successfully");
+      formElement.reset(); await refresh(); notify("Face enrolled successfully");
     } catch (error) { notify(error.message, true); }
   };
   return <section className="page-section"><PageHeading eyebrow="Biometric enrollment" title="Enroll a face" description="Add one clear, consented face image to improve matching." />
