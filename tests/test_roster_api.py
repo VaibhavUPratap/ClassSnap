@@ -50,3 +50,16 @@ def test_roster_api_requires_usn_format(client):
         },
     )
     assert valid.status_code == 201
+
+
+def test_roster_api_normalizes_pasted_usn(client):
+    response = client.post(
+        "/api/v1/students",
+        json={
+            "student_id": " eng24am0108 ",
+            "first_name": "Pasted",
+            "last_name": "USN",
+        },
+    )
+    assert response.status_code == 201
+    assert response.json()["student_id"] == "ENG24AM0108"

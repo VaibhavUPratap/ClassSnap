@@ -4,7 +4,7 @@ Pydantic schemas for Student Roster and Management.
 
 from datetime import datetime
 from typing import List, Optional
-from pydantic import BaseModel, Field, EmailStr
+from pydantic import BaseModel, Field, field_validator
 
 
 USN_PATTERN = r"^[A-Z]{3}\d{2}[A-Z]{2}\d{4}$"
@@ -22,6 +22,13 @@ class StudentBase(BaseModel):
     email: Optional[str] = Field(None, max_length=255, description="Institutional email", json_schema_extra={"example": "alice.j@university.edu"})
     has_consent: bool = Field(False, description="Whether explicit biometric consent has been recorded")
     consent_notes: Optional[str] = Field(None, max_length=255, description="Consent documentation or form reference")
+
+    @field_validator("student_id", mode="before")
+    @classmethod
+    def normalize_usn(cls, value: str) -> str:
+        if isinstance(value, str):
+            return value.strip().upper()
+        return value
 
 
 class StudentCreate(StudentBase):
