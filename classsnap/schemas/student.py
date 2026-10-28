@@ -59,6 +59,7 @@ class FaceTemplateSummary(BaseModel):
     sharpness: float
     is_primary: bool
     created_at: datetime
+    preview_url: Optional[str] = None
 
 
 class StudentResponse(BaseModel):

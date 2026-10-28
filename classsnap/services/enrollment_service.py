@@ -5,6 +5,7 @@ multi-reference storage, and aggregated reference vector generation.
 """
 
 import json
+import cv2
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import List, Optional, Tuple, Union
@@ -130,6 +131,14 @@ class EnrollmentService:
         # 6. Align and extract normalized embedding
         aligned_face = self.cv_engine.aligner.align(image, face_detection)
         embedding_vector = self.cv_engine.embedder.extract_embedding(aligned_face)
+        preview_ok, preview_encoded = cv2.imencode(
+            ".jpg", aligned_face, [cv2.IMWRITE_JPEG_QUALITY, 82]
+        )
+        if not preview_ok:
+            raise BiometricProcessingError(
+                message="Enrollment failed: could not create the face preview.",
+                details={"student_id": student.student_id},
+            )
 
         # 7. Persist FaceTemplate
         template = FaceTemplate(
@@ -143,6 +152,8 @@ class EnrollmentService:
             enrollment_source="single_reference_photo",
         )
         template.set_embedding_vector(embedding_vector)
+        template.preview_blob = preview_encoded.tobytes()
+        template.preview_mime_type = "image/jpeg"
 
         db.add(template)
 

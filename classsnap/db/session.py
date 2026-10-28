@@ -62,6 +62,16 @@ def init_db(target_engine: Engine = engine) -> None:
         if "class_at" not in columns:
             with target_engine.begin() as connection:
                 connection.execute(text("ALTER TABLE attendance_sessions ADD COLUMN class_at DATETIME"))
+    if "face_templates" in inspect(target_engine).get_table_names():
+        columns = {
+            column["name"]
+            for column in inspect(target_engine).get_columns("face_templates")
+        }
+        with target_engine.begin() as connection:
+            if "preview_blob" not in columns:
+                connection.execute(text("ALTER TABLE face_templates ADD COLUMN preview_blob BLOB"))
+            if "preview_mime_type" not in columns:
+                connection.execute(text("ALTER TABLE face_templates ADD COLUMN preview_mime_type VARCHAR(50)"))
     logger.info("Database tables successfully initialized.")
 
 

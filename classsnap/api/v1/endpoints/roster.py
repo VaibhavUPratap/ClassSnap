@@ -1,9 +1,12 @@
 """Student roster API endpoints."""
 
-from fastapi import APIRouter, Depends, File, Query, UploadFile, status
+from fastapi import APIRouter, Depends, File, Query, Response, UploadFile, status
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from classsnap.db.session import get_db
+from classsnap.exceptions import ResourceNotFoundError
+from classsnap.models.face_template import FaceTemplate
 from classsnap.schemas.student import (
     RosterImportSummary,
     StudentCreate,
@@ -28,7 +31,17 @@ def _student_response(student) -> StudentResponse:
         consent_recorded_at=student.consent_recorded_at,
         created_at=student.created_at,
         enrolled_templates_count=len(student.templates),
-        templates=student.templates,
+        templates=[
+            {
+                **template.__dict__,
+                "preview_url": (
+                    f"/api/v1/students/{student.id}/templates/{template.id}/preview"
+                    if template.preview_blob
+                    else None
+                ),
+            }
+            for template in student.templates
+        ],
     )
 
 
@@ -58,6 +71,23 @@ async def import_roster(
     db: Session = Depends(get_db),
 ):
     return RosterService.import_roster_from_csv(await file.read(), actor)
+
+
+@router.get("/{student_id}/templates/{template_id}/preview")
+def get_template_preview(student_id: str, template_id: str, db: Session = Depends(get_db)):
+    template = db.execute(
+        select(FaceTemplate).where(
+            FaceTemplate.id == template_id,
+            FaceTemplate.student_id == student_id,
+        )
+    ).scalar_one_or_none()
+    if template is None or template.preview_blob is None:
+        raise ResourceNotFoundError("Face template preview", template_id)
+    return Response(
+        content=template.preview_blob,
+        media_type=template.preview_mime_type or "image/jpeg",
+        headers={"Cache-Control": "private, max-age=3600"},
+    )
 
 
 @router.get("/{student_id}", response_model=StudentResponse)

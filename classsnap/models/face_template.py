@@ -26,6 +26,8 @@ class FaceTemplate(Base):
     model_version: Mapped[str] = mapped_column(String(50), nullable=False, default="2021dec")
     embedding_dim: Mapped[int] = mapped_column(Integer, nullable=False, default=128)
     embedding_blob: Mapped[bytes] = mapped_column(LargeBinary, nullable=False)
+    preview_blob: Mapped[bytes | None] = mapped_column(LargeBinary, nullable=True)
+    preview_mime_type: Mapped[str | None] = mapped_column(String(50), nullable=True)
 
     quality_score: Mapped[float] = mapped_column(Float, default=1.0, nullable=False)
     sharpness: Mapped[float] = mapped_column(Float, default=0.0, nullable=False)
