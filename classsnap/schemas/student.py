@@ -6,7 +6,7 @@ from datetime import datetime
 from typing import List, Optional
 import re
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 
 USN_PATTERN = r"[A-Z]{3}[0-9]{2}[A-Z]{2}[0-9]{4}"
@@ -49,6 +49,8 @@ class StudentUpdate(BaseModel):
 
 
 class FaceTemplateSummary(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     id: str
     model_name: str
     model_version: str
@@ -59,7 +61,13 @@ class FaceTemplateSummary(BaseModel):
     created_at: datetime
 
 
-class StudentResponse(StudentBase):
+class StudentResponse(BaseModel):
+    student_id: str
+    first_name: str
+    last_name: str
+    email: Optional[str] = None
+    has_consent: bool = False
+    consent_notes: Optional[str] = None
     id: str
     is_active: bool
     consent_recorded_at: Optional[datetime]

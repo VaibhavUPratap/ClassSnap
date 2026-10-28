@@ -1,3 +1,8 @@
+from datetime import datetime, timezone
+
+from classsnap.models.student import Student
+
+
 def test_roster_api_crud_surface(client):
     created = client.post(
         "/api/v1/students",
@@ -28,6 +33,25 @@ def test_roster_api_crud_surface(client):
     fetched = client.get("/api/v1/students/API24ST0001")
     assert fetched.status_code == 200
     assert fetched.json()["first_name"] == "Ada"
+
+
+def test_roster_api_lists_legacy_non_usn_records(client, db_session):
+    db_session.add(
+        Student(
+            student_id="LEGACY-101",
+            first_name="Legacy",
+            last_name="Student",
+            has_consent=False,
+            is_active=True,
+            created_at=datetime.now(timezone.utc),
+        )
+    )
+    db_session.flush()
+
+    response = client.get("/api/v1/students")
+
+    assert response.status_code == 200
+    assert any(item["student_id"] == "LEGACY-101" for item in response.json())
 
 
 def test_roster_api_requires_usn_format(client):
