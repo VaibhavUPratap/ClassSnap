@@ -79,6 +79,21 @@ def init_db(target_engine: Engine = engine) -> None:
                 target_engine,
                 "ALTER TABLE face_templates ADD COLUMN preview_mime_type VARCHAR(50)",
             )
+    if "attendance_detections" in inspect(target_engine).get_table_names():
+        columns = {
+            column["name"]
+            for column in inspect(target_engine).get_columns("attendance_detections")
+        }
+        if "preview_blob" not in columns:
+            _execute_schema_change(
+                target_engine,
+                "ALTER TABLE attendance_detections ADD COLUMN preview_blob BLOB",
+            )
+        if "preview_mime_type" not in columns:
+            _execute_schema_change(
+                target_engine,
+                "ALTER TABLE attendance_detections ADD COLUMN preview_mime_type VARCHAR(50)",
+            )
     logger.info("Database tables successfully initialized.")
 
 

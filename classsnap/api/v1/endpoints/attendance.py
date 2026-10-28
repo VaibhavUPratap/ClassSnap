@@ -48,6 +48,12 @@ def _session_detail_response(session) -> AttendanceSessionDetailResponse:
                 similarity=detection.proposed_match.similarity if detection.proposed_match else None,
                 rejection_reason=detection.proposed_match.rejection_reason if detection.proposed_match else None,
                 reviewed=detection.proposed_match.reviewed if detection.proposed_match else False,
+                preview_url=(
+                    f"/api/v1/attendance/sessions/{session.id}/detections/"
+                    f"{detection.detection_id}/preview"
+                    if detection.preview_blob
+                    else None
+                ),
             )
             for detection in session.detections
         ],
@@ -64,6 +70,18 @@ def create_session(payload: AttendanceSessionCreate, db: Session = Depends(get_d
 @router.get("/{session_id}", response_model=AttendanceSessionDetailResponse)
 def get_session(session_id: str, db: Session = Depends(get_db)):
     return _session_detail_response(AttendanceService.get_session(db, session_id))
+
+
+@router.get("/{session_id}/detections/{detection_id}/preview")
+def detection_preview(session_id: str, detection_id: str, db: Session = Depends(get_db)):
+    detection = AttendanceService.get_detection(db, session_id, detection_id)
+    if detection.preview_blob is None:
+        return Response(status_code=status.HTTP_404_NOT_FOUND)
+    return Response(
+        content=detection.preview_blob,
+        media_type=detection.preview_mime_type or "image/jpeg",
+        headers={"Cache-Control": "private, max-age=300"},
+    )
 
 
 @router.get("/{session_id}/report")

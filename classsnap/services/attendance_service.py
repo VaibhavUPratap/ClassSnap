@@ -45,6 +45,18 @@ class AttendanceService:
         return AttendanceService._get(db, session_id)
 
     @staticmethod
+    def get_detection(db: Session, session_id: str, detection_id: str) -> AttendanceDetection:
+        detection = db.execute(
+            select(AttendanceDetection).where(
+                AttendanceDetection.session_id == session_id,
+                AttendanceDetection.detection_id == detection_id,
+            )
+        ).scalar_one_or_none()
+        if detection is None:
+            raise ResourceNotFoundError("Detection", detection_id)
+        return detection
+
+    @staticmethod
     def begin_processing(db: Session, session_id: str) -> AttendanceSession:
         session = AttendanceService._get(db, session_id)
         AttendanceService._require_status(session, {"draft"})

@@ -28,6 +28,7 @@ class AttendanceDetectionResponse(BaseModel):
     similarity: Optional[float] = None
     rejection_reason: Optional[str] = None
     reviewed: bool
+    preview_url: Optional[str] = None
 
 
 class AttendanceSessionDetailResponse(AttendanceSessionResponse):

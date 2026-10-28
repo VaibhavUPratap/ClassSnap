@@ -1,6 +1,7 @@
 """Classroom image processing endpoint."""
 
 import numpy as np
+import cv2
 from fastapi import APIRouter, Depends, File, UploadFile
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -39,8 +40,9 @@ async def process_classroom_image(
         if embedding is not None:
             roster_embeddings[student.id] = (student.full_name, embedding, model_version)
 
+    image_bytes = await read_image_upload(image)
     detections, _ = cv_engine.process_image(
-        await read_image_upload(image),
+        image_bytes,
         score_threshold=0.40,
         extract_embeddings=True,
         use_tiling=False,
@@ -89,4 +91,20 @@ async def process_classroom_image(
         if result.detection_id not in suppressed_unknowns
     ]
     session = AttendanceService.add_proposals(db, session_id, proposals)
+    source_image = cv2.imdecode(np.frombuffer(image_bytes, dtype=np.uint8), cv2.IMREAD_COLOR)
+    if source_image is not None:
+        detections_by_id = {detection.detection_id: detection for detection in detections}
+        for detection in session.detections:
+            source_detection = detections_by_id.get(detection.detection_id)
+            if source_detection is None:
+                continue
+            aligned = cv_engine.aligner.align(source_image, source_detection)
+            encoded, preview = cv2.imencode(
+                ".jpg", aligned, [cv2.IMWRITE_JPEG_QUALITY, 82]
+            )
+            if encoded:
+                detection.preview_blob = preview.tobytes()
+                detection.preview_mime_type = "image/jpeg"
+    db.commit()
+    db.refresh(session)
     return _session_response(session)

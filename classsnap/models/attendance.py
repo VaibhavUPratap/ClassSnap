@@ -4,7 +4,7 @@ import uuid
 from datetime import datetime, timezone
 from typing import List, Optional
 
-from sqlalchemy import Boolean, ForeignKey, Integer, String, Text, UniqueConstraint
+from sqlalchemy import Boolean, ForeignKey, Integer, LargeBinary, String, Text, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from classsnap.db.base import Base
@@ -46,6 +46,8 @@ class AttendanceDetection(Base):
     sequence: Mapped[int] = mapped_column(Integer, nullable=False)
     status: Mapped[str] = mapped_column(String(32), nullable=False)
     bbox_json: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    preview_blob: Mapped[Optional[bytes]] = mapped_column(LargeBinary, nullable=True)
+    preview_mime_type: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
 
     session: Mapped["AttendanceSession"] = relationship(back_populates="detections")
     proposed_match: Mapped[Optional["ProposedMatch"]] = relationship(

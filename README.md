@@ -136,6 +136,9 @@ quality score, primary-reference status, enrollment time, and the stored
 enrollment face preview. The application stores a small compressed preview
 linked to each template for roster verification; original uploads and
 biometric vectors are not displayed in the dashboard.
+Attendance review proposals also retain a small aligned face preview so the
+reviewer can verify what was detected before marking a person present or
+absent; the original classroom upload is not retained.
 Each template can be removed individually, and the Add face action opens the
 enrollment form with the selected student already chosen. Students can also
 be removed from the roster; linked templates are deleted with the student.
@@ -188,7 +191,8 @@ POST /api/v1/attendance/sessions
 GET  /api/v1/attendance/sessions/{session_id}
 POST /api/v1/attendance/sessions/{session_id}/process
 POST /api/v1/attendance/sessions/{session_id}/image
-POST /api/v1/attendance/sessions/{session_id}/proposals
+GET  /api/v1/attendance/sessions/{session_id}/detections/{detection_id}/preview
+POST  /api/v1/attendance/sessions/{session_id}/proposals
 POST /api/v1/attendance/sessions/{session_id}/detections/{detection_id}/review
 POST /api/v1/attendance/sessions/{session_id}/confirm
 POST /api/v1/attendance/sessions/{session_id}/detections/{detection_id}/correction
