@@ -2,10 +2,11 @@
 
 import csv
 import io
+from datetime import datetime
 from typing import Literal
 
 from openpyxl import Workbook
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from classsnap.exceptions import ValidationError
@@ -28,12 +29,13 @@ class ReportService:
         statement = (
             select(AttendanceSession)
             .where(AttendanceSession.status == "confirmed")
-            .order_by(AttendanceSession.created_at.desc())
+            .order_by(func.coalesce(AttendanceSession.class_at, AttendanceSession.created_at).desc())
         )
+        class_timestamp = func.coalesce(AttendanceSession.class_at, AttendanceSession.created_at)
         if date_from is not None:
-            statement = statement.where(AttendanceSession.created_at >= date_from)
+            statement = statement.where(class_timestamp >= date_from)
         if date_to is not None:
-            statement = statement.where(AttendanceSession.created_at < date_to)
+            statement = statement.where(class_timestamp < date_to)
 
         students = db.execute(select(Student).where(Student.is_active.is_(True))).scalars().all()
         sessions = db.execute(statement).scalars().all()
@@ -57,7 +59,7 @@ class ReportService:
                 AttendanceReportSession(
                     session_id=session.id,
                     session_name=session.name,
-                    class_date=session.created_at,
+                    class_date=session.class_at or session.created_at,
                     confirmed_at=session.confirmed_at,
                     present_count=len(attendees),
                     absent_count=max(len(students) - len(attendees), 0),

@@ -21,8 +21,18 @@ class AttendanceService:
     """Creates, reviews, and confirms attendance sessions."""
 
     @staticmethod
-    def create_session(db: Session, name: str, actor: str = "system") -> AttendanceSession:
-        session = AttendanceSession(name=name, created_by=actor, status="draft")
+    def create_session(
+        db: Session,
+        name: str,
+        actor: str = "system",
+        class_at: datetime | None = None,
+    ) -> AttendanceSession:
+        session = AttendanceSession(
+            name=name,
+            created_by=actor,
+            status="draft",
+            class_at=class_at or datetime.now(timezone.utc),
+        )
         db.add(session)
         db.flush()
         AttendanceService._audit(db, "SESSION_CREATED", session.id, actor)

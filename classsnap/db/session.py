@@ -3,7 +3,7 @@ Database connection and session management for ClassSnap.
 """
 
 from typing import Generator
-from sqlalchemy import create_engine, event, text
+from sqlalchemy import create_engine, event, inspect, text
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import sessionmaker, Session
 from classsnap.config import get_settings
@@ -54,6 +54,14 @@ def init_db(target_engine: Engine = engine) -> None:
     """Creates database tables based on registered models."""
     logger.info("Initializing database tables...")
     Base.metadata.create_all(bind=target_engine)
+    if "attendance_sessions" in inspect(target_engine).get_table_names():
+        columns = {
+            column["name"]
+            for column in inspect(target_engine).get_columns("attendance_sessions")
+        }
+        if "class_at" not in columns:
+            with target_engine.begin() as connection:
+                connection.execute(text("ALTER TABLE attendance_sessions ADD COLUMN class_at DATETIME"))
     logger.info("Database tables successfully initialized.")
 
 

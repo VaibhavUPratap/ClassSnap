@@ -1,5 +1,6 @@
 """API schemas for attendance session workflows."""
 
+from datetime import datetime
 from typing import Optional
 
 from pydantic import BaseModel, Field
@@ -7,6 +8,7 @@ from pydantic import BaseModel, Field
 
 class AttendanceSessionCreate(BaseModel):
     name: str = Field(..., min_length=1, max_length=255)
+    class_at: datetime | None = Field(None, description="Date and time when the class took place")
     actor: str = Field("system", min_length=1, max_length=100)
 
 
@@ -15,6 +17,7 @@ class AttendanceSessionResponse(BaseModel):
     name: str
     status: str
     created_by: str
+    class_at: Optional[str] = None
     confirmed_at: Optional[str] = None
 
 

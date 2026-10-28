@@ -191,6 +191,12 @@ Attendance confirmation is blocked until every proposed detection has been
 reviewed. Corrections after confirmation require a reviewer identity and
 reason and are recorded as audit events.
 
+When a session is created, the dashboard records the class date and start time
+in `attendance_sessions.class_at`. This is separate from the audit timestamp
+`created_at` and is the timestamp used by the reports dashboard and its date
+filters. Existing databases are upgraded on startup without deleting session
+data; legacy sessions with no `class_at` value fall back to `created_at`.
+
 ## Privacy and security
 
 - Face enrollment requires recorded consent.

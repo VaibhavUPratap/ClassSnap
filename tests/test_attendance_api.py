@@ -1,10 +1,11 @@
 def test_attendance_session_api_lifecycle(client):
     created = client.post(
         "/api/v1/attendance/sessions",
-        json={"name": "API Session", "actor": "teacher-1"},
+        json={"name": "API Session", "actor": "teacher-1", "class_at": "2026-10-28T09:30:00"},
     )
     assert created.status_code == 201
     session_id = created.json()["id"]
+    assert created.json()["class_at"].startswith("2026-10-28T09:30:00")
 
     processed = client.post(f"/api/v1/attendance/sessions/{session_id}/process")
     assert processed.status_code == 200

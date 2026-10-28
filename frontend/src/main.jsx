@@ -158,6 +158,8 @@ function Enroll({ students, refresh, notify }) {
 
 function Attendance({ students, notify }) {
   const [name, setName] = useState("");
+  const [classDate, setClassDate] = useState(() => new Date().toISOString().slice(0, 10));
+  const [classTime, setClassTime] = useState(() => new Date().toTimeString().slice(0, 5));
   const [session, setSession] = useState(null);
   const [image, setImage] = useState(null);
   const [status, setStatus] = useState({ title: "No session selected", message: "Create a session to begin.", ready: false });
@@ -166,7 +168,7 @@ function Attendance({ students, notify }) {
   const createSession = async (event) => {
     event.preventDefault();
     try {
-      const created = await request("/attendance/sessions", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name, actor: "web-reviewer" }) });
+      const created = await request("/attendance/sessions", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name, class_at: `${classDate}T${classTime}:00`, actor: "web-reviewer" }) });
       await request(`/attendance/sessions/${created.id}/process`, { method: "POST" });
       setSession(created); setStatus({ title: "Session ready", message: "Choose a classroom image to generate proposals.", ready: true }); notify("Attendance session created");
     } catch (error) { setStatus({ title: "Unable to create session", message: error.message }); notify(error.message, true); }
@@ -191,7 +193,7 @@ function Attendance({ students, notify }) {
   const confirm = async () => { try { await request(`/attendance/sessions/${session.id}/confirm?actor=web-reviewer`, { method: "POST" }); setConfirmed(true); await loadSession(); setStatus({ title: "Attendance confirmed", message: "The session is finalized.", ready: true }); notify("Attendance confirmed"); } catch (error) { notify(error.message, true); } };
   const allReviewed = detections.length > 0 && detections.every((item) => item.reviewed);
   return <section className="page-section"><PageHeading eyebrow="Human-in-the-loop review" title="Take attendance" description="Process a classroom photo, review every proposal, then confirm."><span className="privacy-badge">Local processing</span></PageHeading>
-    <div className="attendance-layout"><div className="content-card"><CardHeading step="01" title="Start a session" text="Name this attendance capture." /><form onSubmit={createSession}><Field label="Session name" value={name} onChange={(event) => setName(event.target.value)} placeholder="Physics 101 · 28 Oct" required /><Button className="full" type="submit">Create session</Button></form><SessionStatus {...status} /></div>
+    <div className="attendance-layout"><div className="content-card"><CardHeading step="01" title="Start a session" text="Save the exact class date and time." /><form onSubmit={createSession}><Field label="Session name" value={name} onChange={(event) => setName(event.target.value)} placeholder="Physics 101 · Morning" required /><div className="date-time-fields"><Field label="Class date" type="date" value={classDate} onChange={(event) => setClassDate(event.target.value)} required /><Field label="Class time" type="time" value={classTime} onChange={(event) => setClassTime(event.target.value)} required /></div><Button className="full" type="submit">Create session</Button></form><SessionStatus {...status} /></div>
       <div className="content-card"><CardHeading step="02" title="Upload classroom image" text="Images are processed in memory." /><form onSubmit={processImage}><label className="upload-zone compact" htmlFor="classroom-image"><span className="upload-icon">↑</span><strong>{image?.name || "Choose classroom image"}</strong><small>JPG or PNG · up to 10 MB</small><input id="classroom-image" type="file" accept="image/*" onChange={(event) => setImage(event.target.files[0])} required /></label><Button className="full" type="submit" disabled={!session || !image}>Process image</Button></form></div></div>
     {detections.length > 0 && <div className="content-card review-card"><div className="card-toolbar"><div><p className="eyebrow">Step 03</p><h2>Review proposals</h2><p className="muted">Every detection must be reviewed before confirmation.</p></div><Button onClick={confirm} disabled={confirmed || !allReviewed}>Confirm attendance</Button></div>{detections.map((detection) => <ReviewRow key={detection.detection_id} detection={detection} students={students} confirmed={confirmed} onReview={review} />)}</div>}
   </section>;

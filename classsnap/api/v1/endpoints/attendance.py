@@ -2,8 +2,6 @@
 
 from datetime import datetime
 
-from datetime import datetime
-
 from fastapi import APIRouter, Depends, Query, status
 from fastapi.responses import Response
 from sqlalchemy.orm import Session
@@ -28,11 +26,13 @@ router = APIRouter(prefix="/attendance/sessions", tags=["Attendance"])
 
 def _session_response(session) -> AttendanceSessionResponse:
     confirmed_at = session.confirmed_at.isoformat() if isinstance(session.confirmed_at, datetime) else None
+    class_at = session.class_at.isoformat() if isinstance(session.class_at, datetime) else None
     return AttendanceSessionResponse(
         id=session.id,
         name=session.name,
         status=session.status,
         created_by=session.created_by,
+        class_at=class_at,
         confirmed_at=confirmed_at,
     )
 
@@ -56,7 +56,9 @@ def _session_detail_response(session) -> AttendanceSessionDetailResponse:
 
 @router.post("", response_model=AttendanceSessionResponse, status_code=status.HTTP_201_CREATED)
 def create_session(payload: AttendanceSessionCreate, db: Session = Depends(get_db)):
-    return _session_response(AttendanceService.create_session(db, payload.name, payload.actor))
+    return _session_response(
+        AttendanceService.create_session(db, payload.name, payload.actor, payload.class_at)
+    )
 
 
 @router.get("/{session_id}", response_model=AttendanceSessionDetailResponse)

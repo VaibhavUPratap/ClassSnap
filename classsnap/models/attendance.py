@@ -21,6 +21,7 @@ class AttendanceSession(Base):
     name: Mapped[str] = mapped_column(String(255), nullable=False)
     status: Mapped[str] = mapped_column(String(32), nullable=False, default="draft", index=True)
     created_by: Mapped[str] = mapped_column(String(100), nullable=False, default="system")
+    class_at: Mapped[Optional[datetime]] = mapped_column(nullable=True, index=True)
     confirmed_at: Mapped[Optional[datetime]] = mapped_column(nullable=True)
 
     detections: Mapped[List["AttendanceDetection"]] = relationship(
