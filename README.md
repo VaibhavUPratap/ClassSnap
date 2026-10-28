@@ -136,6 +136,9 @@ quality score, primary-reference status, enrollment time, and the stored
 enrollment face preview. The application stores a small compressed preview
 linked to each template for roster verification; original uploads and
 biometric vectors are not displayed in the dashboard.
+Each template can be removed individually, and the Add face action opens the
+enrollment form with the selected student already chosen. Students can also
+be removed from the roster; linked templates are deleted with the student.
 Student records use a USN as the student ID. The required format is three
 uppercase letters, two digits, two uppercase letters, and four digits, for
 example `ENG24AM0107`.

@@ -4,7 +4,7 @@ Database connection and session management for ClassSnap.
 
 from typing import Generator
 from sqlalchemy import create_engine, event, inspect, text
-from sqlalchemy.engine import Engine
+from sqlalchemy.engine import Connection, Engine
 from sqlalchemy.orm import sessionmaker, Session
 from classsnap.config import get_settings
 from classsnap.db.base import Base
@@ -60,19 +60,34 @@ def init_db(target_engine: Engine = engine) -> None:
             for column in inspect(target_engine).get_columns("attendance_sessions")
         }
         if "class_at" not in columns:
-            with target_engine.begin() as connection:
-                connection.execute(text("ALTER TABLE attendance_sessions ADD COLUMN class_at DATETIME"))
+            _execute_schema_change(
+                target_engine,
+                "ALTER TABLE attendance_sessions ADD COLUMN class_at DATETIME",
+            )
     if "face_templates" in inspect(target_engine).get_table_names():
         columns = {
             column["name"]
             for column in inspect(target_engine).get_columns("face_templates")
         }
-        with target_engine.begin() as connection:
-            if "preview_blob" not in columns:
-                connection.execute(text("ALTER TABLE face_templates ADD COLUMN preview_blob BLOB"))
-            if "preview_mime_type" not in columns:
-                connection.execute(text("ALTER TABLE face_templates ADD COLUMN preview_mime_type VARCHAR(50)"))
+        if "preview_blob" not in columns:
+            _execute_schema_change(
+                target_engine,
+                "ALTER TABLE face_templates ADD COLUMN preview_blob BLOB",
+            )
+        if "preview_mime_type" not in columns:
+            _execute_schema_change(
+                target_engine,
+                "ALTER TABLE face_templates ADD COLUMN preview_mime_type VARCHAR(50)",
+            )
     logger.info("Database tables successfully initialized.")
+
+
+def _execute_schema_change(target_engine: Engine, statement: str) -> None:
+    if isinstance(target_engine, Connection):
+        target_engine.execute(text(statement))
+        return
+    with target_engine.begin() as connection:
+        connection.execute(text(statement))
 
 
 def check_db_health(db: Session) -> bool:

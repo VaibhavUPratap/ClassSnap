@@ -1,6 +1,6 @@
 """Consent-governed face enrollment endpoint."""
 
-from fastapi import APIRouter, Depends, File, Form, UploadFile
+from fastapi import APIRouter, Depends, File, Form, Query, UploadFile, status
 from sqlalchemy.orm import Session
 
 from classsnap.db.session import get_db
@@ -42,3 +42,17 @@ async def enroll_student_face(
         sharpness=template.sharpness,
         created_at=template.created_at,
     )
+
+
+@router.delete("/{student_id}/templates/{template_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_student_template(
+    student_id: str,
+    template_id: str,
+    actor: str = Query("system", min_length=1, max_length=100),
+    db: Session = Depends(get_db),
+):
+    template = EnrollmentService.get_student_templates(db, student_id)
+    if not any(item.id == template_id for item in template):
+        from classsnap.exceptions import ResourceNotFoundError
+        raise ResourceNotFoundError("FaceTemplate", template_id)
+    EnrollmentService.delete_template(db, template_id, actor)
