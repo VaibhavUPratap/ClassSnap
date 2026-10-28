@@ -51,6 +51,15 @@ def list_students(
     return [_student_response(student) for student in RosterService.get_students(db, active_only, limit, offset)]
 
 
+@router.post("/import", response_model=RosterImportSummary)
+async def import_roster(
+    file: UploadFile = File(...),
+    actor: str = Query("system", min_length=1, max_length=100),
+    db: Session = Depends(get_db),
+):
+    return RosterService.import_roster_from_csv(await file.read(), actor)
+
+
 @router.get("/{student_id}", response_model=StudentResponse)
 def get_student(student_id: str, db: Session = Depends(get_db)):
     return _student_response(RosterService.get_student_by_id(db, student_id))
@@ -73,12 +82,3 @@ def delete_student(
     db: Session = Depends(get_db),
 ):
     RosterService.delete_student(db, student_id, actor)
-
-
-@router.post("/import", response_model=RosterImportSummary)
-async def import_roster(
-    file: UploadFile = File(...),
-    actor: str = Query("system", min_length=1, max_length=100),
-    db: Session = Depends(get_db),
-):
-    return RosterService.import_roster_from_csv(await file.read(), actor)

@@ -117,17 +117,17 @@ http://127.0.0.1:8000/review/
 ```
 
 The frontend files are in `classsnap/web/` and are served directly by FastAPI;
-it is not a separate React,
-Vue, or Next.js application. It provides:
+it is not a separate React, Vue, or Next.js application. The dashboard has
+separate navigation for:
 
-1. Attendance session creation
-2. Classroom image upload
-3. Face detection and identity proposal processing
-4. Proposal review with present/absent decisions
-5. Candidate student ID entry
-6. Attendance confirmation
-7. Post-confirmation correction through the audited workflow
-8. Status and privacy messaging
+- **Overview**: roster and enrollment summary plus the workflow guide.
+- **Students**: active roster table and an add-student form.
+- **Enroll face**: consent confirmation, student selection, and image upload.
+- **Take attendance**: session creation, classroom image processing, proposal
+  review, confirmation, and post-confirmation correction.
+
+The dashboard also includes responsive mobile navigation, loading and empty
+states, visible API error feedback, accessible labels, and privacy messaging.
 
 ### API documentation
 
