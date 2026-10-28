@@ -119,6 +119,18 @@ def test_enrollment_fails_with_multiple_faces(db_session):
     assert "multiple faces" in str(exc.value).lower()
 
 
+def test_enrollment_collapses_overlapping_partial_face_detections(db_session):
+    student = _create_consented_student(db_session, "OVL24NG0001")
+    svc = EnrollmentService(cv_engine=_make_mock_cv_engine([
+        _make_good_detection(BoundingBox(x=100, y=100, w=180, h=180)),
+        _make_good_detection(BoundingBox(x=110, y=130, w=190, h=200)),
+    ]))
+
+    template = svc.enroll_student_face(db_session, student.student_id, b"fake")
+
+    assert template.student_id == student.id
+
+
 # ───────────────────────── Quality rejection ─────────────────────────
 
 def test_enrollment_fails_on_low_quality_face(db_session):

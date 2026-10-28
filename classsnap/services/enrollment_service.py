@@ -83,9 +83,20 @@ class EnrollmentService:
         # 3. Load and validate image
         image = self.cv_engine.load_image(image_input)
 
-        # 4. Detect faces (direct single-pass detection on enrollment portrait)
-        detections = self.cv_engine.detector.detect(image, score_threshold=0.60)
-
+        # 4. Detect faces, including a contrast-enhanced fallback for dark portraits.
+        detections = self.cv_engine.detector.detect(image, score_threshold=0.40)
+        if not any(min(d.bbox.w, d.bbox.h) >= 80 for d in detections):
+            lab = cv2.cvtColor(image, cv2.COLOR_BGR2LAB)
+            lightness, chroma_a, chroma_b = cv2.split(lab)
+            enhanced = cv2.createCLAHE(
+                clipLimit=2.0, tileGridSize=(8, 8)
+            ).apply(lightness)
+            enhanced_image = cv2.cvtColor(
+                cv2.merge((enhanced, chroma_a, chroma_b)), cv2.COLOR_LAB2BGR
+            )
+            detections = self.cv_engine.detector.detect(
+                enhanced_image, score_threshold=0.40
+            )
         if len(detections) == 0:
             raise BiometricProcessingError(
                 message="Enrollment failed: No face was detected in the reference photograph. "
@@ -93,14 +104,57 @@ class EnrollmentService:
                 details={"student_id": student.student_id, "faces_detected": 0},
             )
 
-        if len(detections) > 1:
+        large_detections = [
+            detection for detection in detections if min(detection.bbox.w, detection.bbox.h) >= 80
+        ]
+        candidate_detections = large_detections or detections
+        if len(candidate_detections) > 1:
+            # YuNet can return overlapping partial boxes for one large, dark face.
+            # Collapse those boxes before applying the single-face enrollment rule.
+            remaining = list(candidate_detections)
+            grouped = []
+            while remaining:
+                candidate = remaining.pop(0)
+                group = [candidate]
+                for other in remaining[:]:
+                    left = max(candidate.bbox.x, other.bbox.x)
+                    top = max(candidate.bbox.y, other.bbox.y)
+                    right = min(
+                        candidate.bbox.x + candidate.bbox.w,
+                        other.bbox.x + other.bbox.w,
+                    )
+                    bottom = min(
+                        candidate.bbox.y + candidate.bbox.h,
+                        other.bbox.y + other.bbox.h,
+                    )
+                    intersection = max(0, right - left) * max(0, bottom - top)
+                    smaller_area = min(
+                        candidate.bbox.w * candidate.bbox.h,
+                        other.bbox.w * other.bbox.h,
+                    )
+                    if smaller_area and intersection / smaller_area >= 0.40:
+                        group.append(other)
+                        remaining.remove(other)
+                grouped.append(max(group, key=lambda item: item.bbox.w * item.bbox.h))
+            candidate_detections = grouped
+        if not candidate_detections:
             raise BiometricProcessingError(
-                message=f"Enrollment failed: Multiple faces ({len(detections)}) detected. "
-                        f"Enrollment photographs must contain exactly one face.",
+                message=(
+                    "Enrollment failed: no sufficiently large face was detected. "
+                    "Use a clear portrait where the face is prominent."
+                ),
                 details={"student_id": student.student_id, "faces_detected": len(detections)},
             )
-
-        face_detection = detections[0]
+        if len(candidate_detections) > 1:
+            raise BiometricProcessingError(
+                message=f"Enrollment failed: Multiple faces ({len(candidate_detections)}) detected. "
+                        "Enrollment photographs must contain exactly one face.",
+                details={
+                    "student_id": student.student_id,
+                    "faces_detected": len(candidate_detections),
+                },
+            )
+        face_detection = candidate_detections[0]
 
         # 5. Assess face quality
         quality = self.cv_engine.quality_assessor.assess_quality(image, face_detection)
