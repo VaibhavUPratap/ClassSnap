@@ -8,7 +8,7 @@ requires a reviewer to approve attendance before it is finalized.
 The project includes both:
 
 - A FastAPI backend and REST API under `/api/v1`
-- A dependency-free browser frontend served at `/review/`
+- A React browser frontend served at `/review/`
 
 ## Features
 
@@ -116,8 +116,8 @@ Open the review workspace at:
 http://127.0.0.1:8000/review/
 ```
 
-The frontend files are in `classsnap/web/` and are served directly by FastAPI;
-it is not a separate React, Vue, or Next.js application. The dashboard has
+The React source files are in `frontend/`; the production build is generated
+in `classsnap/web/dist/` and served directly by FastAPI. The dashboard has
 separate navigation for:
 
 - **Overview**: roster and enrollment summary plus the workflow guide.
@@ -128,6 +128,14 @@ separate navigation for:
 
 The dashboard also includes responsive mobile navigation, loading and empty
 states, visible API error feedback, accessible labels, and privacy messaging.
+
+To rebuild the frontend after changing React source files:
+
+```bash
+cd frontend
+npm install
+npm run build
+```
 
 ### API documentation
 

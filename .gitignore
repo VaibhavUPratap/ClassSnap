@@ -22,6 +22,10 @@ share/python-wheels/
 *.egg
 MANIFEST
 
+# Built React dashboard (required by the FastAPI runtime)
+!classsnap/web/dist/
+!classsnap/web/dist/**
+
 # Virtual Environments
 .venv/
 venv/

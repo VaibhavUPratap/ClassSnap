@@ -74,7 +74,7 @@ def create_app() -> FastAPI:
     app.include_router(api_v1_router)
     app.mount(
         "/review",
-        StaticFiles(directory=str(get_settings().base_dir / "classsnap" / "web"), html=True),
+        StaticFiles(directory=str(get_settings().base_dir / "classsnap" / "web" / "dist"), html=True),
         name="review",
     )
 

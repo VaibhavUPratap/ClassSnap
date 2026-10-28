@@ -32,4 +32,4 @@ Completed on 2026-10-28.
 
 - Face enrollment still requires explicit consent.
 - Image uploads remain subject to the existing media type and size validation.
-- The frontend remains dependency-free and is served at `/review/`.
+- The frontend is served from the built React bundle at `/review/`.
