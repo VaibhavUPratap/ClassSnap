@@ -86,7 +86,7 @@ function Students({ students, refresh, setPage, notify }) {
       </tbody></table></div>
     </div>
     <div className="content-card add-card"><div><p className="eyebrow">New record</p><h2>Add a student</h2><p>Create a roster record before enrolling a face.</p></div><form className="form-grid" onSubmit={submit}>
-      <Field label="First name" name="first_name" value={form.first_name} onChange={update} required /><Field label="Last name" name="last_name" value={form.last_name} onChange={update} required /><Field label="Student ID" name="student_id" value={form.student_id} onChange={update} required /><Field label="Email (optional)" name="email" type="email" value={form.email} onChange={update} />
+      <Field label="First name" name="first_name" value={form.first_name} onChange={update} required /><Field label="Last name" name="last_name" value={form.last_name} onChange={update} required /><Field label="USN" name="student_id" value={form.student_id} onChange={update} pattern="[A-Z]{3}[0-9]{2}[A-Z]{2}[0-9]{4}" title="Use the format ENG24AM0107" placeholder="ENG24AM0107" required /><Field label="Email (optional)" name="email" type="email" value={form.email} onChange={update} />
       <label className="checkbox-label"><input name="has_consent" type="checkbox" checked={form.has_consent} onChange={update} /> Consent is recorded</label><Field className="full" label="Consent notes (optional)" name="consent_notes" value={form.consent_notes} onChange={update} /><Button className="full" type="submit">Add student</Button>
     </form></div>
   </section>;

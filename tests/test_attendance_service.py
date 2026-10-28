@@ -21,7 +21,7 @@ def test_session_requires_review_before_confirmation(db_session):
 def test_review_and_confirmation_create_unique_attendance_record(db_session):
     student = RosterService.create_student(
         db_session,
-        StudentCreate(student_id="ATT-1", first_name="Ada", last_name="Lovelace"),
+        StudentCreate(student_id="ATT24AT0001", first_name="Ada", last_name="Lovelace"),
     )
     session = AttendanceService.create_session(db_session, "Math 101")
     AttendanceService.begin_processing(db_session, session.id)
@@ -52,11 +52,11 @@ def test_review_and_confirmation_create_unique_attendance_record(db_session):
 def test_confirmed_session_supports_audited_correction_only_through_workflow(db_session):
     first = RosterService.create_student(
         db_session,
-        StudentCreate(student_id="ATT-2", first_name="Grace", last_name="Hopper"),
+        StudentCreate(student_id="ATT24AT0002", first_name="Grace", last_name="Hopper"),
     )
     second = RosterService.create_student(
         db_session,
-        StudentCreate(student_id="ATT-3", first_name="Katherine", last_name="Johnson"),
+        StudentCreate(student_id="ATT24AT0003", first_name="Katherine", last_name="Johnson"),
     )
     session = AttendanceService.create_session(db_session, "Physics 101")
     AttendanceService.begin_processing(db_session, session.id)
@@ -93,11 +93,11 @@ def test_confirmed_session_supports_audited_correction_only_through_workflow(db_
 def test_duplicate_correction_rolls_back_without_changing_attendance(db_session):
     first = RosterService.create_student(
         db_session,
-        StudentCreate(student_id="ATT-4", first_name="Alan", last_name="Turing"),
+        StudentCreate(student_id="ATT24AT0004", first_name="Alan", last_name="Turing"),
     )
     already_present = RosterService.create_student(
         db_session,
-        StudentCreate(student_id="ATT-5", first_name="Dorothy", last_name="Vaughan"),
+        StudentCreate(student_id="ATT24AT0005", first_name="Dorothy", last_name="Vaughan"),
     )
     session = AttendanceService.create_session(db_session, "Computer Science 101")
     AttendanceService.begin_processing(db_session, session.id)

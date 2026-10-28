@@ -13,7 +13,7 @@ from classsnap.services.roster_service import RosterService
 
 def test_create_student_success(db_session):
     student_in = StudentCreate(
-        student_id="CS101",
+        student_id="CSE24CS0101",
         first_name="Jane",
         last_name="Doe",
         email="jane.doe@university.edu",
@@ -23,7 +23,7 @@ def test_create_student_success(db_session):
     student = RosterService.create_student(db_session, student_in)
 
     assert student.id is not None
-    assert student.student_id == "CS101"
+    assert student.student_id == "CSE24CS0101"
     assert student.full_name == "Jane Doe"
     assert student.has_consent is True
     assert student.consent_recorded_at is not None
@@ -38,10 +38,10 @@ def test_create_student_success(db_session):
 
 
 def test_create_duplicate_student_fails(db_session):
-    s1 = StudentCreate(student_id="DUP99", first_name="First", last_name="Student")
+    s1 = StudentCreate(student_id="DUP24DP0001", first_name="First", last_name="Student")
     RosterService.create_student(db_session, s1)
 
-    s2 = StudentCreate(student_id="DUP99", first_name="Second", last_name="Student")
+    s2 = StudentCreate(student_id="DUP24DP0001", first_name="Second", last_name="Student")
     with pytest.raises(ValidationError) as exc:
         RosterService.create_student(db_session, s2)
     assert "already registered" in str(exc.value).lower()
@@ -50,7 +50,7 @@ def test_create_duplicate_student_fails(db_session):
 def test_update_and_deactivate_student(db_session):
     student = RosterService.create_student(
         db_session,
-        StudentCreate(student_id="ACT10", first_name="Active", last_name="One", has_consent=False),
+        StudentCreate(student_id="ACT24AC0001", first_name="Active", last_name="One", has_consent=False),
     )
     assert student.has_consent is False
 
@@ -71,7 +71,7 @@ def test_update_and_deactivate_student(db_session):
 def test_delete_student(db_session):
     student = RosterService.create_student(
         db_session,
-        StudentCreate(student_id="DEL99", first_name="To", last_name="Delete"),
+        StudentCreate(student_id="DEL24DL0001", first_name="To", last_name="Delete"),
     )
     deleted = RosterService.delete_student(db_session, student.id)
     assert deleted is True
@@ -82,9 +82,9 @@ def test_delete_student(db_session):
 
 def test_import_roster_from_csv(db_session):
     csv_text = """student_id,first_name,last_name,email,has_consent
-STU001,Alice,Smith,alice@uni.edu,true
-STU002,Bob,Jones,bob@uni.edu,false
-STU003,Charlie,Brown,charlie@uni.edu,1
+ENG24AM0001,Alice,Smith,alice@uni.edu,true
+ENG24AM0002,Bob,Jones,bob@uni.edu,false
+ENG24AM0003,Charlie,Brown,charlie@uni.edu,1
 """
     summary = RosterService.import_roster_from_csv(db_session, csv_text)
 
@@ -92,9 +92,9 @@ STU003,Charlie,Brown,charlie@uni.edu,1
     assert summary.skipped_count == 0
     assert len(summary.errors) == 0
 
-    s1 = RosterService.get_student_by_id(db_session, "STU001")
+    s1 = RosterService.get_student_by_id(db_session, "ENG24AM0001")
     assert s1.has_consent is True
-    s2 = RosterService.get_student_by_id(db_session, "STU002")
+    s2 = RosterService.get_student_by_id(db_session, "ENG24AM0002")
     assert s2.has_consent is False
 
 
@@ -102,15 +102,15 @@ def test_import_roster_handles_duplicates_and_validation(db_session):
     # Pre-existing student in DB
     RosterService.create_student(
         db_session,
-        StudentCreate(student_id="EXISTING1", first_name="Old", last_name="Record"),
+        StudentCreate(student_id="ENG24EX0001", first_name="Old", last_name="Record"),
     )
 
     csv_text = """student_id,first_name,last_name,email,has_consent
-EXISTING1,Clash,User,clash@uni.edu,true
-CSV_DUP,Dave,Miller,,true
-CSV_DUP,DaveDuplicate,Miller,,true
+ENG24EX0001,Clash,User,clash@uni.edu,true
+ENG24CD0001,Dave,Miller,,true
+ENG24CD0001,DaveDuplicate,Miller,,true
 ,Missing,ID,,false
-VALID1,Evan,Wright,evan@uni.edu,yes
+ENG24VW0001,Evan,Wright,evan@uni.edu,yes
 """
     summary = RosterService.import_roster_from_csv(db_session, csv_text)
 

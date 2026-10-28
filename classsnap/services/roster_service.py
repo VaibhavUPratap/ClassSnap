@@ -5,6 +5,7 @@ Roster Management and CSV Import Service for ClassSnap.
 import csv
 import io
 import json
+import re
 from datetime import datetime, timezone
 from typing import List, Optional, Union
 from sqlalchemy import select
@@ -19,6 +20,7 @@ from classsnap.schemas.student import (
     RosterImportSummary,
     StudentCreate,
     StudentUpdate,
+    USN_PATTERN,
 )
 
 logger = get_logger("services.roster")
@@ -224,6 +226,17 @@ class RosterService:
             # Field validation
             if not raw_id:
                 errors.append(RosterImportError(row_number=row_idx, student_id=None, error_message="Missing student_id"))
+                skipped_count += 1
+                continue
+
+            if not re.fullmatch(USN_PATTERN, raw_id):
+                errors.append(
+                    RosterImportError(
+                        row_number=row_idx,
+                        student_id=raw_id,
+                        error_message="student_id must be a USN in the format ENG24AM0107",
+                    )
+                )
                 skipped_count += 1
                 continue
 

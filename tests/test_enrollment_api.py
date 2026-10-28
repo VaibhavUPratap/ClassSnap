@@ -2,7 +2,7 @@ def test_enrollment_api_requires_consent(client):
     created = client.post(
         "/api/v1/students",
         json={
-            "student_id": "ENROLL-API-1",
+            "student_id": "ENR24AP0001",
             "first_name": "Test",
             "last_name": "Student",
         },

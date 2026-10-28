@@ -7,8 +7,16 @@ from typing import List, Optional
 from pydantic import BaseModel, Field, EmailStr
 
 
+USN_PATTERN = r"^[A-Z]{3}\d{2}[A-Z]{2}\d{4}$"
+
+
 class StudentBase(BaseModel):
-    student_id: str = Field(..., min_length=1, max_length=64, description="Unique institutional student ID", json_schema_extra={"example": "STU101"})
+    student_id: str = Field(
+        ...,
+        pattern=USN_PATTERN,
+        description="Unique USN in the format ENG24AM0107",
+        json_schema_extra={"example": "ENG24AM0107"},
+    )
     first_name: str = Field(..., min_length=1, max_length=100, description="First name", json_schema_extra={"example": "Alice"})
     last_name: str = Field(..., min_length=1, max_length=100, description="Last name", json_schema_extra={"example": "Johnson"})
     email: Optional[str] = Field(None, max_length=255, description="Institutional email", json_schema_extra={"example": "alice.j@university.edu"})

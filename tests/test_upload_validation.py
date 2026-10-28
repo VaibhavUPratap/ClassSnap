@@ -2,7 +2,7 @@ def test_enrollment_rejects_non_image_upload(client):
     created = client.post(
         "/api/v1/students",
         json={
-            "student_id": "UPLOAD-API-1",
+            "student_id": "UPL24AP0001",
             "first_name": "Upload",
             "last_name": "Test",
         },

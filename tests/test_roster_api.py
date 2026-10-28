@@ -3,7 +3,7 @@ def test_roster_api_crud_surface(client):
         "/api/v1/students",
         params={"actor": "admin"},
         json={
-            "student_id": "API-STU-1",
+            "student_id": "API24ST0001",
             "first_name": "Ada",
             "last_name": "Lovelace",
             "has_consent": True,
@@ -11,7 +11,7 @@ def test_roster_api_crud_surface(client):
     )
     assert created.status_code == 201
     student = created.json()
-    assert student["student_id"] == "API-STU-1"
+    assert student["student_id"] == "API24ST0001"
     assert student["enrolled_templates_count"] == 0
 
     listed = client.get("/api/v1/students", params={"active_only": True})
@@ -25,6 +25,28 @@ def test_roster_api_crud_surface(client):
     assert updated.status_code == 200
     assert updated.json()["last_name"] == "Byron"
 
-    fetched = client.get("/api/v1/students/API-STU-1")
+    fetched = client.get("/api/v1/students/API24ST0001")
     assert fetched.status_code == 200
     assert fetched.json()["first_name"] == "Ada"
+
+
+def test_roster_api_requires_usn_format(client):
+    invalid = client.post(
+        "/api/v1/students",
+        json={
+            "student_id": "STU101",
+            "first_name": "Invalid",
+            "last_name": "USN",
+        },
+    )
+    assert invalid.status_code == 422
+
+    valid = client.post(
+        "/api/v1/students",
+        json={
+            "student_id": "ENG24AM0107",
+            "first_name": "Valid",
+            "last_name": "USN",
+        },
+    )
+    assert valid.status_code == 201

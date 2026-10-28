@@ -128,6 +128,9 @@ separate navigation for:
 
 The dashboard also includes responsive mobile navigation, loading and empty
 states, visible API error feedback, accessible labels, and privacy messaging.
+Student records use a USN as the student ID. The required format is three
+uppercase letters, two digits, two uppercase letters, and four digits, for
+example `ENG24AM0107`.
 
 To rebuild the frontend after changing React source files:
 

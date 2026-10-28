@@ -6,10 +6,10 @@ from classsnap.services.roster_service import RosterService
 
 def _confirmed_session(db_session):
     present = RosterService.create_student(
-        db_session, StudentCreate(student_id="REPORT-1", first_name="Present", last_name="Student")
+        db_session, StudentCreate(student_id="REP24OR0001", first_name="Present", last_name="Student")
     )
     RosterService.create_student(
-        db_session, StudentCreate(student_id="REPORT-2", first_name="Absent", last_name="Student")
+        db_session, StudentCreate(student_id="REP24OR0002", first_name="Absent", last_name="Student")
     )
     session = AttendanceService.create_session(db_session, "Report Session")
     AttendanceService.begin_processing(db_session, session.id)
@@ -25,7 +25,7 @@ def test_confirmed_attendance_exports_csv_and_xlsx(db_session):
     session = _confirmed_session(db_session)
 
     csv_content, csv_type, csv_name = ReportService.export_attendance(db_session, session.id, "csv")
-    assert b"REPORT-1" in csv_content
+    assert b"REP24OR0001" in csv_content
     assert b",absent" in csv_content
     assert csv_type == "text/csv"
     assert csv_name.endswith(".csv")
