@@ -26,6 +26,9 @@ MANIFEST
 !classsnap/web/dist/
 !classsnap/web/dist/**
 
+# React dependencies
+frontend/node_modules/
+
 # Virtual Environments
 .venv/
 venv/
