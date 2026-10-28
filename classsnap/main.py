@@ -66,6 +66,15 @@ def create_app() -> FastAPI:
         allow_headers=["*"],
     )
 
+    @app.middleware("http")
+    async def disable_dashboard_html_cache(request, call_next):
+        response = await call_next(request)
+        if request.url.path == "/review/" or request.url.path == "/review":
+            response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate"
+            response.headers["Pragma"] = "no-cache"
+            response.headers["Expires"] = "0"
+        return response
+
     # Register Exception Handlers
     app.add_exception_handler(ClassSnapError, classsnap_exception_handler)
     app.add_exception_handler(Exception, generic_exception_handler)

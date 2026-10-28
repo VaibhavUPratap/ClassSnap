@@ -133,6 +133,9 @@ uppercase letters, two digits, two uppercase letters, and four digits, for
 example `ENG24AM0107`.
 Lowercase input and accidental leading/trailing spaces are normalized
 automatically.
+If an older browser tab still shows a native “string did not match the expected
+pattern” message, close that tab and reopen `/review/`; the dashboard now
+disables native pattern validation and validates the USN inside React.
 
 To rebuild the frontend after changing React source files:
 
