@@ -11,9 +11,66 @@ from sqlalchemy.orm import Session
 from classsnap.exceptions import ValidationError
 from classsnap.models.attendance import AttendanceRecord, AttendanceSession
 from classsnap.models.student import Student
+from classsnap.schemas.report import (
+    AttendanceReportSession,
+    AttendanceReportStudent,
+    AttendanceReportSummary,
+)
 
 
 class ReportService:
+    @staticmethod
+    def confirmed_sessions(
+        db: Session,
+        date_from: datetime | None = None,
+        date_to: datetime | None = None,
+    ) -> AttendanceReportSummary:
+        statement = (
+            select(AttendanceSession)
+            .where(AttendanceSession.status == "confirmed")
+            .order_by(AttendanceSession.created_at.desc())
+        )
+        if date_from is not None:
+            statement = statement.where(AttendanceSession.created_at >= date_from)
+        if date_to is not None:
+            statement = statement.where(AttendanceSession.created_at < date_to)
+
+        students = db.execute(select(Student).where(Student.is_active.is_(True))).scalars().all()
+        sessions = db.execute(statement).scalars().all()
+        rows = []
+        total_attendance = 0
+        total_possible = 0
+        for session in sessions:
+            present_ids = {
+                record.student_id
+                for record in session.attendance
+                if record.present
+            }
+            attendees = [
+                AttendanceReportStudent(student_id=student.student_id, student_name=student.full_name)
+                for student in students
+                if student.id in present_ids
+            ]
+            total_attendance += len(attendees)
+            total_possible += len(students)
+            rows.append(
+                AttendanceReportSession(
+                    session_id=session.id,
+                    session_name=session.name,
+                    class_date=session.created_at,
+                    confirmed_at=session.confirmed_at,
+                    present_count=len(attendees),
+                    absent_count=max(len(students) - len(attendees), 0),
+                    attendees=attendees,
+                )
+            )
+        return AttendanceReportSummary(
+            total_sessions=len(rows),
+            total_attendance=total_attendance,
+            total_possible=total_possible,
+            sessions=rows,
+        )
+
     @staticmethod
     def attendance_rows(db: Session, session_id: str) -> list[dict[str, object]]:
         session = db.get(AttendanceSession, session_id)

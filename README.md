@@ -125,6 +125,8 @@ separate navigation for:
 - **Enroll face**: consent confirmation, student selection, and image upload.
 - **Take attendance**: session creation, classroom image processing, proposal
   review, confirmation, and post-confirmation correction.
+- **Reports**: confirmed classes grouped by day and time, attendance totals,
+  attendee names and USNs, date filters, and CSV/XLSX downloads.
 
 The dashboard also includes responsive mobile navigation, loading and empty
 states, visible API error feedback, accessible labels, and privacy messaging.
@@ -167,6 +169,7 @@ PATCH  /api/v1/students/{student_id}
 DELETE /api/v1/students/{student_id}
 POST   /api/v1/students/import
 POST   /api/v1/students/{student_id}/enrollment
+GET  /api/v1/attendance/sessions/reports/summary
 ```
 
 ### Attendance workflow

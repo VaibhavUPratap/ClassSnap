@@ -2,6 +2,8 @@
 
 from datetime import datetime
 
+from datetime import datetime
+
 from fastapi import APIRouter, Depends, Query, status
 from fastapi.responses import Response
 from sqlalchemy.orm import Session
@@ -19,6 +21,7 @@ from classsnap.schemas.attendance import (
 )
 from classsnap.services.attendance_service import AttendanceService
 from classsnap.services.report_service import ReportService
+from classsnap.schemas.report import AttendanceReportSummary
 
 router = APIRouter(prefix="/attendance/sessions", tags=["Attendance"])
 
@@ -73,6 +76,15 @@ def export_report(
         media_type=media_type,
         headers={"Content-Disposition": f'attachment; filename="{filename}"'},
     )
+
+
+@router.get("/reports/summary", response_model=AttendanceReportSummary)
+def report_summary(
+    date_from: datetime | None = Query(None),
+    date_to: datetime | None = Query(None),
+    db: Session = Depends(get_db),
+):
+    return ReportService.confirmed_sessions(db, date_from, date_to)
 
 
 @router.post("/{session_id}/process", response_model=AttendanceSessionResponse)

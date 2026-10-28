@@ -1,6 +1,7 @@
 import { StrictMode, useEffect, useMemo, useState } from "react";
 import { createRoot } from "react-dom/client";
 import "./styles.css";
+import "./report.css";
 
 const API = "/api/v1";
 const USN_PATTERN = /^[A-Z]{3}[0-9]{2}[A-Z]{2}[0-9]{4}$/;
@@ -24,6 +25,7 @@ function Sidebar({ page, setPage, open, setOpen }) {
     ["students", "♙", "Students"],
     ["enroll", "＋", "Enroll face"],
     ["attendance", "✓", "Take attendance"],
+    ["reports", "▤", "Reports"],
   ];
   return (
     <aside className={`sidebar ${open ? "open" : ""}`}>
@@ -195,6 +197,35 @@ function Attendance({ students, notify }) {
   </section>;
 }
 
+function Reports({ notify }) {
+  const [from, setFrom] = useState("");
+  const [to, setTo] = useState("");
+  const [report, setReport] = useState({ total_sessions: 0, total_attendance: 0, total_possible: 0, sessions: [] });
+  const load = async () => {
+    try {
+      const params = new URLSearchParams();
+      if (from) params.set("date_from", `${from}T00:00:00`);
+      if (to) {
+        const end = new Date(`${to}T00:00:00`);
+        end.setDate(end.getDate() + 1);
+        params.set("date_to", end.toISOString());
+      }
+      setReport(await request(`/attendance/sessions/reports/summary?${params}`));
+    } catch (error) { notify(error.message, true); }
+  };
+  useEffect(() => { load(); }, []);
+  const download = (format) => {
+    const params = new URLSearchParams({ format });
+    window.open(`${API}/attendance/sessions/${report.sessions[0]?.session_id}/report?${params}`, "_blank");
+  };
+  return <section className="page-section">
+    <PageHeading eyebrow="Attendance analytics" title="Reports" description="See who attended each confirmed class, by day and time." />
+    <div className="report-filters content-card"><div><label>From<input type="date" value={from} onChange={(event) => setFrom(event.target.value)} /></label><label>To<input type="date" value={to} onChange={(event) => setTo(event.target.value)} /></label></div><Button onClick={load}>Apply filters</Button></div>
+    <div className="stat-grid"><Stat icon="▤" tone="blue" label="Confirmed classes" value={report.total_sessions} /><Stat icon="✓" tone="green" label="Attendance marks" value={report.total_attendance} /><Stat icon="◎" tone="amber" label="Attendance rate" value={report.total_possible ? `${Math.round((report.total_attendance / report.total_possible) * 100)}%` : "—"} /></div>
+    {!report.sessions.length ? <div className="content-card empty-state">No confirmed attendance sessions found for this period.</div> : <div className="report-list">{report.sessions.map((session) => <article className="content-card report-card" key={session.session_id}><div className="report-card-heading"><div><p className="eyebrow">{new Date(session.class_date).toLocaleDateString(undefined, { weekday: "long", month: "short", day: "numeric", year: "numeric" })}</p><h2>{session.session_name}</h2><p className="muted">{new Date(session.class_date).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })} · confirmed {session.confirmed_at ? new Date(session.confirmed_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "—"}</p></div><div className="report-count"><strong>{session.present_count}</strong><span>present / {session.absent_count} absent</span></div></div><div className="attendee-list">{session.attendees.length ? session.attendees.map((attendee) => <span className="attendee" key={attendee.student_id}><span className="avatar">{attendee.student_name.split(" ").map((part) => part[0]).join("").slice(0, 2)}</span><span><strong>{attendee.student_name}</strong><small>{attendee.student_id}</small></span></span>) : <p className="muted">No students marked present.</p>}</div><div className="report-actions"><Button variant="secondary" onClick={() => window.open(`${API}/attendance/sessions/${session.session_id}/report?format=csv`, "_blank")}>Download CSV</Button><Button variant="secondary" onClick={() => window.open(`${API}/attendance/sessions/${session.session_id}/report?format=xlsx`, "_blank")}>Download XLSX</Button></div></article>)}</div>}
+  </section>;
+}
+
 function CardHeading({ step, title, text }) { return <div className="card-heading"><span className="step">{step}</span><div><h2>{title}</h2><p className="muted">{text}</p></div></div>; }
 function SessionStatus({ title, message, ready }) { return <div className="session-status"><span className={`status-dot ${ready ? "ready" : ""}`} /><div><strong>{title}</strong><p>{message}</p></div></div>; }
 function ReviewRow({ detection, students, confirmed, onReview }) {
@@ -211,7 +242,7 @@ function App() {
   const refresh = async () => { try { setStudents(await request("/students?active_only=true")); } catch (error) { notify(error.message, true); } };
   useEffect(() => { refresh(); const onHash = () => setPage(window.location.hash.slice(1) || "overview"); window.addEventListener("hashchange", onHash); return () => window.removeEventListener("hashchange", onHash); }, []);
   const changePage = (next) => { window.location.hash = next; setPage(next); };
-  const content = useMemo(() => ({ overview: <Overview students={students} setPage={changePage} />, students: <Students students={students} refresh={refresh} setPage={changePage} notify={notify} />, enroll: <Enroll students={students} refresh={refresh} notify={notify} />, attendance: <Attendance students={students} notify={notify} /> }[page] || <Overview students={students} setPage={changePage} />), [page, students]);
+  const content = useMemo(() => ({ overview: <Overview students={students} setPage={changePage} />, students: <Students students={students} refresh={refresh} setPage={changePage} notify={notify} />, enroll: <Enroll students={students} refresh={refresh} notify={notify} />, attendance: <Attendance students={students} notify={notify} />, reports: <Reports notify={notify} /> }[page] || <Overview students={students} setPage={changePage} />), [page, students]);
   return <div className="app-shell"><Sidebar page={page} setPage={changePage} open={menuOpen} setOpen={setMenuOpen} /><main className="main-content"><header className="mobile-header"><a className="brand" href="#overview" onClick={() => changePage("overview")}><span className="brand-mark">C</span><strong>ClassSnap</strong></a><button className="menu-button" onClick={() => setMenuOpen(!menuOpen)} aria-label="Open navigation">☰</button></header>{content}{toast && <div className={`toast ${toast.error ? "error" : ""}`} role="status">{toast.message}</div>}</main></div>;
 }
 
