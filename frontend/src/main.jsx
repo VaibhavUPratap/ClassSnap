@@ -7,7 +7,7 @@ const USN_PATTERN = /^[A-Z]{3}[0-9]{2}[A-Z]{2}[0-9]{4}$/;
 
 async function request(path, options = {}) {
   const response = await fetch(`${API}${path}`, options);
-  const payload = await response.json();
+  const payload = response.status === 204 ? null : await response.json();
   if (!response.ok) {
     throw new Error(payload?.error?.message || "The request could not be completed.");
   }
@@ -98,7 +98,7 @@ function Students({ students, refresh, setPage, notify }) {
     <PageHeading eyebrow="Roster management" title="Students" description="Keep your classroom roster current and consent-aware."><Button onClick={() => setPage("enroll")}>Enroll a face <span>＋</span></Button></PageHeading>
     <div className="content-card"><div className="card-toolbar"><div><h2>Active roster</h2><p>{students.length} active student{students.length === 1 ? "" : "s"}</p></div><Button variant="secondary" onClick={refresh}>Refresh</Button></div>
       <div className="table-wrap"><table><thead><tr><th>Student</th><th>Student ID</th><th>Consent</th><th>Face templates</th><th /></tr></thead><tbody>
-        {!students.length ? <tr><td colSpan="5" className="empty-state">No students yet. Add your first student below.</td></tr> : students.map((student) => <StudentRow key={student.id} student={student} setPage={setPage} />)}
+        {!students.length ? <tr><td colSpan="5" className="empty-state">No students yet. Add your first student below.</td></tr> : students.map((student) => <StudentRow key={student.id} student={student} setPage={setPage} refresh={refresh} notify={notify} />)}
       </tbody></table></div>
     </div>
     <div className="content-card add-card"><div><p className="eyebrow">New record</p><h2>Add a student</h2><p>Create a roster record before enrolling a face.</p></div><form className="form-grid" noValidate onSubmit={submit}>
@@ -108,9 +108,19 @@ function Students({ students, refresh, setPage, notify }) {
   </section>;
 }
 
-function StudentRow({ student, setPage }) {
+function StudentRow({ student, setPage, refresh, notify }) {
   const initials = `${student.first_name[0]}${student.last_name[0]}`.toUpperCase();
-  return <tr><td><span className="student-name"><span className="avatar">{initials}</span><strong>{student.first_name} {student.last_name}</strong></span></td><td>{student.student_id}</td><td><span className={`pill ${student.has_consent ? "green" : "gray"}`}>{student.has_consent ? "Recorded" : "Required"}</span></td><td>{student.enrolled_templates_count}</td><td><Button variant="secondary" onClick={() => setPage("enroll")}>Enroll</Button></td></tr>;
+  const remove = async () => {
+    if (!window.confirm(`Remove ${student.first_name} ${student.last_name} (${student.student_id}) from the roster?`)) return;
+    try {
+      await request(`/students/${encodeURIComponent(student.id)}?actor=web-admin`, { method: "DELETE" });
+      await refresh();
+      notify("Student removed from the roster");
+    } catch (error) {
+      notify(error.message, true);
+    }
+  };
+  return <tr><td><span className="student-name"><span className="avatar">{initials}</span><strong>{student.first_name} {student.last_name}</strong></span></td><td>{student.student_id}</td><td><span className={`pill ${student.has_consent ? "green" : "gray"}`}>{student.has_consent ? "Recorded" : "Required"}</span></td><td>{student.enrolled_templates_count}</td><td className="row-actions"><Button variant="secondary" onClick={() => setPage("enroll")}>Enroll</Button><Button variant="danger" onClick={remove}>Remove</Button></td></tr>;
 }
 
 function Field({ label, className = "", ...props }) {
