@@ -4,6 +4,7 @@ from datetime import datetime
 
 from fastapi import APIRouter, Depends, Query, status
 from fastapi.responses import Response
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from classsnap.db.session import get_db
@@ -20,6 +21,7 @@ from classsnap.schemas.attendance import (
 from classsnap.services.attendance_service import AttendanceService
 from classsnap.services.report_service import ReportService
 from classsnap.schemas.report import AttendanceReportSummary
+from classsnap.models.student import Student
 
 router = APIRouter(prefix="/attendance/sessions", tags=["Attendance"])
 
@@ -37,7 +39,16 @@ def _session_response(session) -> AttendanceSessionResponse:
     )
 
 
-def _session_detail_response(session) -> AttendanceSessionDetailResponse:
+def _session_detail_response(session, db: Session) -> AttendanceSessionDetailResponse:
+    student_ids = {
+        detection.proposed_match.student_id
+        for detection in session.detections
+        if detection.proposed_match and detection.proposed_match.student_id
+    }
+    students = {
+        student.id: student
+        for student in db.execute(select(Student).where(Student.id.in_(student_ids))).scalars()
+    } if student_ids else {}
     return AttendanceSessionDetailResponse(
         **_session_response(session).model_dump(),
         detections=[
@@ -45,6 +56,18 @@ def _session_detail_response(session) -> AttendanceSessionDetailResponse:
                 detection_id=detection.detection_id,
                 status=detection.proposed_match.status if detection.proposed_match else detection.status,
                 student_id=detection.proposed_match.student_id if detection.proposed_match else None,
+                student_name=(
+                    students[detection.proposed_match.student_id].full_name
+                    if detection.proposed_match
+                    and detection.proposed_match.student_id in students
+                    else None
+                ),
+                student_usn=(
+                    students[detection.proposed_match.student_id].student_id
+                    if detection.proposed_match
+                    and detection.proposed_match.student_id in students
+                    else None
+                ),
                 similarity=detection.proposed_match.similarity if detection.proposed_match else None,
                 rejection_reason=detection.proposed_match.rejection_reason if detection.proposed_match else None,
                 reviewed=detection.proposed_match.reviewed if detection.proposed_match else False,
@@ -69,7 +92,7 @@ def create_session(payload: AttendanceSessionCreate, db: Session = Depends(get_d
 
 @router.get("/{session_id}", response_model=AttendanceSessionDetailResponse)
 def get_session(session_id: str, db: Session = Depends(get_db)):
-    return _session_detail_response(AttendanceService.get_session(db, session_id))
+    return _session_detail_response(AttendanceService.get_session(db, session_id), db)
 
 
 @router.get("/{session_id}/detections/{detection_id}/preview")

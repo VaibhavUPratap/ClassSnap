@@ -15,6 +15,7 @@ from classsnap.services.matching_service import MatchingService
 from classsnap.services.matching_service import STATUS_AMBIGUOUS, STATUS_MATCHED
 from classsnap.cv.engine import CVEngine
 from classsnap.cv.geometry import compute_iou
+from classsnap.cv.deduplication import non_maximum_suppression
 
 from classsnap.api.v1.endpoints.attendance import _session_response
 from classsnap.api.v1.upload import read_image_upload
@@ -47,7 +48,68 @@ async def process_classroom_image(
         extract_embeddings=True,
         use_tiling=False,
     )
+    detections = non_maximum_suppression(detections)
     matcher = MatchingService()
+    # Keep one crop for overlapping boxes of the same physical face. For
+    # oversized portraits, the strongest detector box is not always the best
+    # aligned crop, so choose the crop with the strongest roster similarity.
+    groups = []
+    for candidate in detections:
+        candidate_center = (
+            candidate.bbox.x + candidate.bbox.w / 2,
+            candidate.bbox.y + candidate.bbox.h / 2,
+        )
+        group = next(
+            (
+                group
+                for group in groups
+                if np.hypot(
+                    candidate_center[0] - group["center"][0],
+                    candidate_center[1] - group["center"][1],
+                )
+                <= 0.70
+                * min(
+                    candidate.bbox.w,
+                    candidate.bbox.h,
+                    group["detection"].bbox.w,
+                    group["detection"].bbox.h,
+                )
+            ),
+            None,
+        )
+        if group is None:
+            groups.append({"center": candidate_center, "detection": candidate})
+            continue
+        current = group["detection"]
+        current_match = matcher.match_single(
+            current.detection_id,
+            np.asarray(current.embedding, dtype=np.float32)
+            if current.embedding is not None
+            else None,
+            roster_embeddings,
+            model_version,
+        )
+        candidate_match = matcher.match_single(
+            candidate.detection_id,
+            np.asarray(candidate.embedding, dtype=np.float32)
+            if candidate.embedding is not None
+            else None,
+            roster_embeddings,
+            model_version,
+        )
+        current_score = (
+            current_match.top_candidate.similarity
+            if current_match.top_candidate
+            else -1.0
+        )
+        candidate_score = (
+            candidate_match.top_candidate.similarity
+            if candidate_match.top_candidate
+            else -1.0
+        )
+        if candidate_score > current_score:
+            group["detection"] = candidate
+    detections = [group["detection"] for group in groups]
     detection_inputs = [
         (
             detection.detection_id,

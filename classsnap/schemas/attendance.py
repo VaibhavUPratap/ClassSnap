@@ -25,6 +25,8 @@ class AttendanceDetectionResponse(BaseModel):
     detection_id: str
     status: str
     student_id: Optional[str] = None
+    student_name: Optional[str] = None
+    student_usn: Optional[str] = None
     similarity: Optional[float] = None
     rejection_reason: Optional[str] = None
     reviewed: bool
