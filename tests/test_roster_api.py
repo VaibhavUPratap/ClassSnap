@@ -40,6 +40,7 @@ def test_roster_api_requires_usn_format(client):
         },
     )
     assert invalid.status_code == 422
+    assert "USN must use the format ENG24AM0107" in str(invalid.json())
 
     valid = client.post(
         "/api/v1/students",

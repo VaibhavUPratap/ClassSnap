@@ -136,6 +136,8 @@ automatically.
 If an older browser tab still shows a native “string did not match the expected
 pattern” message, close that tab and reopen `/review/`; the dashboard now
 disables native pattern validation and validates the USN inside React.
+The backend also uses a custom validator rather than exposing a regex pattern
+in its API schema.
 
 To rebuild the frontend after changing React source files:
 

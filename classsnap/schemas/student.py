@@ -4,16 +4,17 @@ Pydantic schemas for Student Roster and Management.
 
 from datetime import datetime
 from typing import List, Optional
+import re
+
 from pydantic import BaseModel, Field, field_validator
 
 
-USN_PATTERN = r"^[A-Z]{3}\d{2}[A-Z]{2}\d{4}$"
+USN_PATTERN = r"[A-Z]{3}[0-9]{2}[A-Z]{2}[0-9]{4}"
 
 
 class StudentBase(BaseModel):
     student_id: str = Field(
         ...,
-        pattern=USN_PATTERN,
         description="Unique USN in the format ENG24AM0107",
         json_schema_extra={"example": "ENG24AM0107"},
     )
@@ -27,7 +28,10 @@ class StudentBase(BaseModel):
     @classmethod
     def normalize_usn(cls, value: str) -> str:
         if isinstance(value, str):
-            return value.strip().upper()
+            normalized = value.strip().upper()
+            if not re.fullmatch(USN_PATTERN, normalized):
+                raise ValueError("USN must use the format ENG24AM0107")
+            return normalized
         return value
 
 
