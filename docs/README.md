@@ -4,6 +4,8 @@ This folder organizes the project plan and implementation requirements by phase.
 
 ## Phase Documents
 
+- [Face Detection and Recognition Models](face-detection-and-recognition.md)
+
 - [Phase 0 — Requirements Analysis and System Architecture](phases/phase-0-requirements-and-architecture.md)
 - [Phase 1 — Project Foundation and Development Environment](phases/phase-1-project-foundation.md)
 - [Phase 2 — Face Detection and Recognition Engine Foundation](phases/phase-2-cv-engine-foundation.md)
