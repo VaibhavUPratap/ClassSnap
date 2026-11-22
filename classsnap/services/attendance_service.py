@@ -68,12 +68,14 @@ class AttendanceService:
         name: str,
         actor: str = "system",
         class_at: datetime | None = None,
+        class_section: str | None = None,
     ) -> AttendanceSession:
         session = AttendanceSession(
             name=name,
             created_by=actor,
             status="draft",
             class_at=class_at or datetime.now(timezone.utc),
+            class_section=class_section,
         )
         db.add(session)
         db.flush()
@@ -178,18 +180,20 @@ class AttendanceService:
         return session
 
     @staticmethod
-    def _active_students(db: Session) -> list[Student]:
-        return list(
-            db.execute(
-                select(Student).where(Student.is_active.is_(True)).order_by(Student.student_id)
-            ).scalars()
-        )
+    def roster_students(db: Session, class_section: Optional[str] = None) -> list[Student]:
+        """Active students forming a session roster (one class, or everyone)."""
+        statement = select(Student).where(Student.is_active.is_(True))
+        if class_section:
+            statement = statement.where(Student.class_section == class_section)
+        return list(db.execute(statement.order_by(Student.student_id)).scalars())
 
     @staticmethod
     def _build_proposed_attendance(db: Session, session: AttendanceSession) -> None:
         """Create a proposed row for every active roster student that lacks one."""
         existing = {row.student_id for row in session.proposed_attendance}
-        roster = {student.id for student in AttendanceService._active_students(db)}
+        roster = {
+            student.id for student in AttendanceService.roster_students(db, session.class_section)
+        }
 
         matched: dict[str, list[AttendanceDetection]] = {}
         candidates: dict[str, AttendanceDetection] = {}
@@ -243,7 +247,9 @@ class AttendanceService:
         if session.status != "review_required":
             return session
         existing = {row.student_id for row in session.proposed_attendance}
-        roster = {student.id for student in AttendanceService._active_students(db)}
+        roster = {
+            student.id for student in AttendanceService.roster_students(db, session.class_section)
+        }
         if roster - existing:
             AttendanceService._build_proposed_attendance(db, session)
             db.commit()
@@ -276,7 +282,7 @@ class AttendanceService:
         if present and not student_id:
             raise ValidationError("A present review decision requires a student identifier")
         if present:
-            AttendanceService._require_active_student(db, student_id)
+            AttendanceService._require_active_student(db, student_id, session.class_section)
             other = db.execute(
                 select(AttendanceDetection.detection_id)
                 .join(ProposedMatch, ProposedMatch.detection_row_id == AttendanceDetection.id)
@@ -565,7 +571,7 @@ class AttendanceService:
         }
         target = None
         if present:
-            AttendanceService._require_active_student(db, student_id)
+            AttendanceService._require_active_student(db, student_id, session.class_section)
             target = records.get(student_id)
             if (
                 target is not None
@@ -682,12 +688,18 @@ class AttendanceService:
         }
 
     @staticmethod
-    def _require_active_student(db: Session, student_id: str) -> Student:
+    def _require_active_student(
+        db: Session, student_id: str, class_section: Optional[str] = None
+    ) -> Student:
         student = db.get(Student, student_id)
         if student is None:
             raise ResourceNotFoundError("Student", student_id)
         if not student.is_active:
             raise ValidationError(f"Student '{student.student_id}' is not on the active roster")
+        if class_section and student.class_section != class_section:
+            raise ValidationError(
+                f"Student '{student.student_id}' is not in class {class_section} for this session"
+            )
         return student
 
     @staticmethod

@@ -26,6 +26,8 @@ class Student(Base):
     first_name: Mapped[str] = mapped_column(String(100), nullable=False)
     last_name: Mapped[str] = mapped_column(String(100), nullable=False)
     email: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
+    # Class / section the student belongs to (e.g. "A", "B", "C").
+    class_section: Mapped[Optional[str]] = mapped_column(String(16), nullable=True, index=True)
 
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
     has_consent: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)

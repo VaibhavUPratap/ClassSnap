@@ -10,6 +10,19 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 
 USN_PATTERN = r"[A-Z]{3}[0-9]{2}[A-Z]{2}[0-9]{4}"
+CLASS_SECTION_PATTERN = r"[A-Z0-9][A-Z0-9-]{0,15}"
+
+
+def normalize_class_section(value: Optional[str]) -> Optional[str]:
+    """Upper-case a class/section label such as 'a' -> 'A'; blank means unassigned."""
+    if value is None or not isinstance(value, str):
+        return value
+    normalized = value.strip().upper()
+    if not normalized:
+        return None
+    if not re.fullmatch(CLASS_SECTION_PATTERN, normalized):
+        raise ValueError("Class must be 1-16 letters, digits or hyphens, e.g. A, B, CSE-A")
+    return normalized
 
 
 class StudentBase(BaseModel):
@@ -23,6 +36,12 @@ class StudentBase(BaseModel):
     email: Optional[str] = Field(None, max_length=255, description="Institutional email", json_schema_extra={"example": "alice.j@university.edu"})
     has_consent: bool = Field(False, description="Whether explicit biometric consent has been recorded")
     consent_notes: Optional[str] = Field(None, max_length=255, description="Consent documentation or form reference")
+    class_section: Optional[str] = Field(None, description="Class / section, e.g. A, B, C", json_schema_extra={"example": "A"})
+
+    @field_validator("class_section", mode="before")
+    @classmethod
+    def normalize_class(cls, value: Optional[str]) -> Optional[str]:
+        return normalize_class_section(value)
 
     @field_validator("student_id", mode="before")
     @classmethod
@@ -47,6 +66,12 @@ class StudentUpdate(BaseModel):
     is_active: Optional[bool] = None
     has_consent: Optional[bool] = None
     consent_notes: Optional[str] = None
+    class_section: Optional[str] = None
+
+    @field_validator("class_section", mode="before")
+    @classmethod
+    def normalize_updated_class(cls, value: Optional[str]) -> Optional[str]:
+        return normalize_class_section(value)
 
     @field_validator("student_id", mode="before")
     @classmethod
@@ -82,6 +107,7 @@ class StudentResponse(BaseModel):
     email: Optional[str] = None
     has_consent: bool = False
     consent_notes: Optional[str] = None
+    class_section: Optional[str] = None
     id: str
     is_active: bool
     consent_recorded_at: Optional[datetime]

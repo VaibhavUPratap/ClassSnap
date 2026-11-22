@@ -37,11 +37,13 @@ async def process_classroom_image(
     students are already PRESENT; nothing is final until confirmation.
     """
     # Fail fast (before running the CV pipeline) on repeated uploads.
-    AttendanceService.require_image_upload_allowed(db, session_id)
+    session = AttendanceService.require_image_upload_allowed(db, session_id)
     cv_engine = CVEngine.from_settings()
     model_version = cv_engine.embedder.model_version
     roster_embeddings = {}
-    students = db.execute(select(Student).where(Student.is_active == True)).scalars().all()
+    # Only the session's class is matched, so students of other classes can
+    # never be proposed present.
+    students = AttendanceService.roster_students(db, session.class_section)
     for student in students:
         embedding = EnrollmentService.get_aggregated_student_embedding(
             db, student.id, required_model_version=model_version

@@ -1,0 +1,3519 @@
+{
+  "photograph": {
+    "path": "/Users/vaibhav/Documents/Projects/ClassSnap/uploads/class_photos/WhatsApp Image 2026-11-22 at 11.52.15.jpeg",
+    "size_bytes": 160616,
+    "format": "JPEG",
+    "width": 1280,
+    "height": 960,
+    "channels": 3,
+    "dtype": "uint8",
+    "exif_orientation": null,
+    "orientation_correction_needed": false,
+    "decode_success": true,
+    "sha256": "6d875a8890010df4a485815309386711917a781a329e334adada39ca43cac8eb",
+    "original_preserved": true
+  },
+  "environment": {
+    "python": "3.14.6",
+    "platform": "macOS-27.2.1-arm64-arm-64bit-Mach-O",
+    "opencv": "5.0.0",
+    "numpy": "2.5.1",
+    "cpu_count": 10,
+    "peak_rss_delta_bytes": 260800512
+  },
+  "models": {
+    "detection": {
+      "name": "YuNet",
+      "version": "2023mar",
+      "api_available": true,
+      "model_path": "models/face_detection_yunet_2023mar.onnx"
+    },
+    "recognition": {
+      "name": "SFace",
+      "version": "2021dec",
+      "api_available": true,
+      "embedding_dimension": 128,
+      "model_path": "models/face_recognition_sface_2021dec.onnx"
+    }
+  },
+  "roster": {
+    "active_students": 9,
+    "compatible_templates": 9,
+    "embedding_model_version": "2021dec"
+  },
+  "timings_ms": {
+    "full_image_detection": 18.202874984126538,
+    "tiled_detection": 54.78737500379793,
+    "embedding_extraction_total": 180.67500402685255,
+    "embedding_extraction_mean": 4.106250091519376
+  },
+  "detection": {
+    "full_count": 44,
+    "raw_tiled_count": 44,
+    "final_unique_count": 44,
+    "full": [
+      {
+        "number": 1,
+        "bbox": {
+          "x": 1195,
+          "y": 442,
+          "w": 27,
+          "h": 34
+        },
+        "confidence": 0.934592,
+        "quality": {
+          "overall_score": 0.8231,
+          "sharpness": 5612.38,
+          "brightness": 120.8,
+          "contrast": 65.69,
+          "min_dimension": 27,
+          "is_usable": true,
+          "rejection_reason": null
+        }
+      },
+      {
+        "number": 2,
+        "bbox": {
+          "x": 1044,
+          "y": 425,
+          "w": 23,
+          "h": 27
+        },
+        "confidence": 0.931153,
+        "quality": {
+          "overall_score": 0.45,
+          "sharpness": 6822.89,
+          "brightness": 144.81,
+          "contrast": 60.35,
+          "min_dimension": 23,
+          "is_usable": false,
+          "rejection_reason": "Face resolution too small (23px < 24px)"
+        }
+      },
+      {
+        "number": 3,
+        "bbox": {
+          "x": 91,
+          "y": 430,
+          "w": 29,
+          "h": 35
+        },
+        "confidence": 0.926696,
+        "quality": {
+          "overall_score": 0.8019,
+          "sharpness": 5306.74,
+          "brightness": 103.23,
+          "contrast": 60.01,
+          "min_dimension": 29,
+          "is_usable": true,
+          "rejection_reason": null
+        }
+      },
+      {
+        "number": 4,
+        "bbox": {
+          "x": 374,
+          "y": 409,
+          "w": 19,
+          "h": 23
+        },
+        "confidence": 0.924703,
+        "quality": {
+          "overall_score": 0.45,
+          "sharpness": 9965.37,
+          "brightness": 120.72,
+          "contrast": 63.58,
+          "min_dimension": 19,
+          "is_usable": false,
+          "rejection_reason": "Face resolution too small (19px < 24px)"
+        }
+      },
+      {
+        "number": 5,
+        "bbox": {
+          "x": 981,
+          "y": 412,
+          "w": 21,
+          "h": 26
+        },
+        "confidence": 0.92221,
+        "quality": {
+          "overall_score": 0.45,
+          "sharpness": 8395.08,
+          "brightness": 143.36,
+          "contrast": 58.2,
+          "min_dimension": 21,
+          "is_usable": false,
+          "rejection_reason": "Face resolution too small (21px < 24px)"
+        }
+      },
+      {
+        "number": 6,
+        "bbox": {
+          "x": 785,
+          "y": 452,
+          "w": 33,
+          "h": 40
+        },
+        "confidence": 0.922062,
+        "quality": {
+          "overall_score": 0.8321,
+          "sharpness": 5192.55,
+          "brightness": 114.51,
+          "contrast": 56.62,
+          "min_dimension": 33,
+          "is_usable": true,
+          "rejection_reason": null
+        }
+      },
+      {
+        "number": 7,
+        "bbox": {
+          "x": 383,
+          "y": 492,
+          "w": 43,
+          "h": 52
+        },
+        "confidence": 0.921735,
+        "quality": {
+          "overall_score": 0.8486,
+          "sharpness": 3900.96,
+          "brightness": 150.91,
+          "contrast": 66.67,
+          "min_dimension": 43,
+          "is_usable": true,
+          "rejection_reason": null
+        }
+      },
+      {
+        "number": 8,
+        "bbox": {
+          "x": 613,
+          "y": 447,
+          "w": 27,
+          "h": 33
+        },
+        "confidence": 0.920939,
+        "quality": {
+          "overall_score": 0.793,
+          "sharpness": 6494.2,
+          "brightness": 101.49,
+          "contrast": 62.7,
+          "min_dimension": 27,
+          "is_usable": true,
+          "rejection_reason": null
+        }
+      },
+      {
+        "number": 9,
+        "bbox": {
+          "x": 565,
+          "y": 465,
+          "w": 35,
+          "h": 45
+        },
+        "confidence": 0.920564,
+        "quality": {
+          "overall_score": 0.853,
+          "sharpness": 5179.76,
+          "brightness": 123.89,
+          "contrast": 64.78,
+          "min_dimension": 35,
+          "is_usable": true,
+          "rejection_reason": null
+        }
+      },
+      {
+        "number": 10,
+        "bbox": {
+          "x": 763,
+          "y": 404,
+          "w": 22,
+          "h": 28
+        },
+        "confidence": 0.920538,
+        "quality": {
+          "overall_score": 0.45,
+          "sharpness": 8791.62,
+          "brightness": 119.72,
+          "contrast": 64.27,
+          "min_dimension": 22,
+          "is_usable": false,
+          "rejection_reason": "Face resolution too small (22px < 24px)"
+        }
+      },
+      {
+        "number": 11,
+        "bbox": {
+          "x": 891,
+          "y": 491,
+          "w": 42,
+          "h": 50
+        },
+        "confidence": 0.919846,
+        "quality": {
+          "overall_score": 0.8545,
+          "sharpness": 6941.32,
+          "brightness": 145.11,
+          "contrast": 63.5,
+          "min_dimension": 42,
+          "is_usable": true,
+          "rejection_reason": null
+        }
+      },
+      {
+        "number": 12,
+        "bbox": {
+          "x": 878,
+          "y": 447,
+          "w": 32,
+          "h": 37
+        },
+        "confidence": 0.917397,
+        "quality": {
+          "overall_score": 0.7959,
+          "sharpness": 6132.6,
+          "brightness": 93.36,
+          "contrast": 62.13,
+          "min_dimension": 32,
+          "is_usable": true,
+          "rejection_reason": null
+        }
+      },
+      {
+        "number": 13,
+        "bbox": {
+          "x": 804,
+          "y": 503,
+          "w": 43,
+          "h": 50
+        },
+        "confidence": 0.917147,
+        "quality": {
+          "overall_score": 0.8615,
+          "sharpness": 7720.25,
+          "brightness": 137.25,
+          "contrast": 47.89,
+          "min_dimension": 43,
+          "is_usable": true,
+          "rejection_reason": null
+        }
+      },
+      {
+        "number": 14,
+        "bbox": {
+          "x": 958,
+          "y": 396,
+          "w": 20,
+          "h": 27
+        },
+        "confidence": 0.916392,
+        "quality": {
+          "overall_score": 0.45,
+          "sharpness": 10202.44,
+          "brightness": 116.8,
+          "contrast": 60.36,
+          "min_dimension": 20,
+          "is_usable": false,
+          "rejection_reason": "Face resolution too small (20px < 24px)"
+        }
+      },
+      {
+        "number": 15,
+        "bbox": {
+          "x": 436,
+          "y": 348,
+          "w": 24,
+          "h": 30
+        },
+        "confidence": 0.916285,
+        "quality": {
+          "overall_score": 0.8116,
+          "sharpness": 9807.11,
+          "brightness": 136.59,
+          "contrast": 52.6,
+          "min_dimension": 24,
+          "is_usable": true,
+          "rejection_reason": null
+        }
+      },
+      {
+        "number": 16,
+        "bbox": {
+          "x": 541,
+          "y": 412,
+          "w": 21,
+          "h": 27
+        },
+        "confidence": 0.913829,
+        "quality": {
+          "overall_score": 0.45,
+          "sharpness": 7131.84,
+          "brightness": 110.93,
+          "contrast": 65.93,
+          "min_dimension": 21,
+          "is_usable": false,
+          "rejection_reason": "Face resolution too small (21px < 24px)"
+        }
+      },
+      {
+        "number": 17,
+        "bbox": {
+          "x": 676,
+          "y": 463,
+          "w": 34,
+          "h": 39
+        },
+        "confidence": 0.911279,
+        "quality": {
+          "overall_score": 0.8146,
+          "sharpness": 6733.12,
+          "brightness": 101.37,
+          "contrast": 71.21,
+          "min_dimension": 34,
+          "is_usable": true,
+          "rejection_reason": null
+        }
+      },
+      {
+        "number": 18,
+        "bbox": {
+          "x": 920,
+          "y": 397,
+          "w": 18,
+          "h": 24
+        },
+        "confidence": 0.909639,
+        "quality": {
+          "overall_score": 0.45,
+          "sharpness": 9069.94,
+          "brightness": 128.4,
+          "contrast": 60.15,
+          "min_dimension": 18,
+          "is_usable": false,
+          "rejection_reason": "Face resolution too small (18px < 24px)"
+        }
+      },
+      {
+        "number": 19,
+        "bbox": {
+          "x": 518,
+          "y": 438,
+          "w": 29,
+          "h": 37
+        },
+        "confidence": 0.908941,
+        "quality": {
+          "overall_score": 0.834,
+          "sharpness": 8864.61,
+          "brightness": 123.74,
+          "contrast": 64.65,
+          "min_dimension": 29,
+          "is_usable": true,
+          "rejection_reason": null
+        }
+      },
+      {
+        "number": 20,
+        "bbox": {
+          "x": 731,
+          "y": 407,
+          "w": 24,
+          "h": 29
+        },
+        "confidence": 0.906243,
+        "quality": {
+          "overall_score": 0.8248,
+          "sharpness": 6646.51,
+          "brightness": 128.15,
+          "contrast": 51.86,
+          "min_dimension": 24,
+          "is_usable": true,
+          "rejection_reason": null
+        }
+      },
+      {
+        "number": 21,
+        "bbox": {
+          "x": 1113,
+          "y": 433,
+          "w": 29,
+          "h": 38
+        },
+        "confidence": 0.90471,
+        "quality": {
+          "overall_score": 0.8166,
+          "sharpness": 5970.47,
+          "brightness": 143.39,
+          "contrast": 55.85,
+          "min_dimension": 29,
+          "is_usable": true,
+          "rejection_reason": null
+        }
+      },
+      {
+        "number": 22,
+        "bbox": {
+          "x": 1168,
+          "y": 411,
+          "w": 24,
+          "h": 31
+        },
+        "confidence": 0.904418,
+        "quality": {
+          "overall_score": 0.7843,
+          "sharpness": 6529.72,
+          "brightness": 101.98,
+          "contrast": 69.49,
+          "min_dimension": 24,
+          "is_usable": true,
+          "rejection_reason": null
+        }
+      },
+      {
+        "number": 23,
+        "bbox": {
+          "x": 479,
+          "y": 452,
+          "w": 35,
+          "h": 44
+        },
+        "confidence": 0.902466,
+        "quality": {
+          "overall_score": 0.8366,
+          "sharpness": 6829.73,
+          "brightness": 142.58,
+          "contrast": 50.31,
+          "min_dimension": 35,
+          "is_usable": true,
+          "rejection_reason": null
+        }
+      },
+      {
+        "number": 24,
+        "bbox": {
+          "x": 164,
+          "y": 436,
+          "w": 27,
+          "h": 33
+        },
+        "confidence": 0.901104,
+        "quality": {
+          "overall_score": 0.8158,
+          "sharpness": 10343.11,
+          "brightness": 116.09,
+          "contrast": 65.2,
+          "min_dimension": 27,
+          "is_usable": true,
+          "rejection_reason": null
+        }
+      },
+      {
+        "number": 25,
+        "bbox": {
+          "x": 346,
+          "y": 417,
+          "w": 22,
+          "h": 27
+        },
+        "confidence": 0.899354,
+        "quality": {
+          "overall_score": 0.45,
+          "sharpness": 7995.51,
+          "brightness": 105.9,
+          "contrast": 60.06,
+          "min_dimension": 22,
+          "is_usable": false,
+          "rejection_reason": "Face resolution too small (22px < 24px)"
+        }
+      },
+      {
+        "number": 26,
+        "bbox": {
+          "x": 272,
+          "y": 432,
+          "w": 26,
+          "h": 31
+        },
+        "confidence": 0.897251,
+        "quality": {
+          "overall_score": 0.8298,
+          "sharpness": 8670.0,
+          "brightness": 127.08,
+          "contrast": 60.86,
+          "min_dimension": 26,
+          "is_usable": true,
+          "rejection_reason": null
+        }
+      },
+      {
+        "number": 27,
+        "bbox": {
+          "x": 197,
+          "y": 455,
+          "w": 31,
+          "h": 38
+        },
+        "confidence": 0.894753,
+        "quality": {
+          "overall_score": 0.8457,
+          "sharpness": 7570.28,
+          "brightness": 127.28,
+          "contrast": 60.54,
+          "min_dimension": 31,
+          "is_usable": true,
+          "rejection_reason": null
+        }
+      },
+      {
+        "number": 28,
+        "bbox": {
+          "x": 190,
+          "y": 419,
+          "w": 23,
+          "h": 30
+        },
+        "confidence": 0.887919,
+        "quality": {
+          "overall_score": 0.45,
+          "sharpness": 7982.96,
+          "brightness": 106.3,
+          "contrast": 61.88,
+          "min_dimension": 23,
+          "is_usable": false,
+          "rejection_reason": "Face resolution too small (23px < 24px)"
+        }
+      },
+      {
+        "number": 29,
+        "bbox": {
+          "x": 1011,
+          "y": 409,
+          "w": 20,
+          "h": 26
+        },
+        "confidence": 0.885753,
+        "quality": {
+          "overall_score": 0.45,
+          "sharpness": 9012.89,
+          "brightness": 117.76,
+          "contrast": 58.6,
+          "min_dimension": 20,
+          "is_usable": false,
+          "rejection_reason": "Face resolution too small (20px < 24px)"
+        }
+      },
+      {
+        "number": 30,
+        "bbox": {
+          "x": 569,
+          "y": 399,
+          "w": 19,
+          "h": 25
+        },
+        "confidence": 0.881498,
+        "quality": {
+          "overall_score": 0.45,
+          "sharpness": 8058.74,
+          "brightness": 70.39,
+          "contrast": 58.75,
+          "min_dimension": 19,
+          "is_usable": false,
+          "rejection_reason": "Face resolution too small (19px < 24px)"
+        }
+      },
+      {
+        "number": 31,
+        "bbox": {
+          "x": 458,
+          "y": 436,
+          "w": 24,
+          "h": 29
+        },
+        "confidence": 0.87853,
+        "quality": {
+          "overall_score": 0.7943,
+          "sharpness": 7763.92,
+          "brightness": 108.37,
+          "contrast": 54.47,
+          "min_dimension": 24,
+          "is_usable": true,
+          "rejection_reason": null
+        }
+      },
+      {
+        "number": 32,
+        "bbox": {
+          "x": 256,
+          "y": 417,
+          "w": 21,
+          "h": 26
+        },
+        "confidence": 0.874852,
+        "quality": {
+          "overall_score": 0.45,
+          "sharpness": 6602.91,
+          "brightness": 87.72,
+          "contrast": 64.6,
+          "min_dimension": 21,
+          "is_usable": false,
+          "rejection_reason": "Face resolution too small (21px < 24px)"
+        }
+      },
+      {
+        "number": 33,
+        "bbox": {
+          "x": 640,
+          "y": 415,
+          "w": 27,
+          "h": 31
+        },
+        "confidence": 0.869723,
+        "quality": {
+          "overall_score": 0.79,
+          "sharpness": 5447.91,
+          "brightness": 99.58,
+          "contrast": 57.07,
+          "min_dimension": 27,
+          "is_usable": true,
+          "rejection_reason": null
+        }
+      },
+      {
+        "number": 34,
+        "bbox": {
+          "x": 570,
+          "y": 422,
+          "w": 26,
+          "h": 32
+        },
+        "confidence": 0.857629,
+        "quality": {
+          "overall_score": 0.787,
+          "sharpness": 6046.73,
+          "brightness": 99.71,
+          "contrast": 61.75,
+          "min_dimension": 26,
+          "is_usable": true,
+          "rejection_reason": null
+        }
+      },
+      {
+        "number": 35,
+        "bbox": {
+          "x": 628,
+          "y": 414,
+          "w": 20,
+          "h": 25
+        },
+        "confidence": 0.854728,
+        "quality": {
+          "overall_score": 0.45,
+          "sharpness": 10678.88,
+          "brightness": 108.67,
+          "contrast": 54.42,
+          "min_dimension": 20,
+          "is_usable": false,
+          "rejection_reason": "Face resolution too small (20px < 24px)"
+        }
+      },
+      {
+        "number": 36,
+        "bbox": {
+          "x": 680,
+          "y": 401,
+          "w": 22,
+          "h": 26
+        },
+        "confidence": 0.851997,
+        "quality": {
+          "overall_score": 0.45,
+          "sharpness": 8881.75,
+          "brightness": 87.34,
+          "contrast": 64.51,
+          "min_dimension": 22,
+          "is_usable": false,
+          "rejection_reason": "Face resolution too small (22px < 24px)"
+        }
+      },
+      {
+        "number": 37,
+        "bbox": {
+          "x": 1040,
+          "y": 390,
+          "w": 20,
+          "h": 25
+        },
+        "confidence": 0.836036,
+        "quality": {
+          "overall_score": 0.45,
+          "sharpness": 11140.14,
+          "brightness": 153.4,
+          "contrast": 56.7,
+          "min_dimension": 20,
+          "is_usable": false,
+          "rejection_reason": "Face resolution too small (20px < 24px)"
+        }
+      },
+      {
+        "number": 38,
+        "bbox": {
+          "x": 1060,
+          "y": 390,
+          "w": 15,
+          "h": 19
+        },
+        "confidence": 0.803852,
+        "quality": {
+          "overall_score": 0.45,
+          "sharpness": 10994.73,
+          "brightness": 122.73,
+          "contrast": 62.79,
+          "min_dimension": 15,
+          "is_usable": false,
+          "rejection_reason": "Face resolution too small (15px < 24px)"
+        }
+      },
+      {
+        "number": 39,
+        "bbox": {
+          "x": 606,
+          "y": 408,
+          "w": 17,
+          "h": 22
+        },
+        "confidence": 0.788401,
+        "quality": {
+          "overall_score": 0.45,
+          "sharpness": 10402.5,
+          "brightness": 112.68,
+          "contrast": 76.3,
+          "min_dimension": 17,
+          "is_usable": false,
+          "rejection_reason": "Face resolution too small (17px < 24px)"
+        }
+      },
+      {
+        "number": 40,
+        "bbox": {
+          "x": 723,
+          "y": 458,
+          "w": 28,
+          "h": 31
+        },
+        "confidence": 0.783393,
+        "quality": {
+          "overall_score": 0.7876,
+          "sharpness": 6971.26,
+          "brightness": 96.08,
+          "contrast": 55.92,
+          "min_dimension": 28,
+          "is_usable": true,
+          "rejection_reason": null
+        }
+      },
+      {
+        "number": 41,
+        "bbox": {
+          "x": 808,
+          "y": 433,
+          "w": 24,
+          "h": 28
+        },
+        "confidence": 0.69088,
+        "quality": {
+          "overall_score": 0.762,
+          "sharpness": 3175.62,
+          "brightness": 87.66,
+          "contrast": 71.04,
+          "min_dimension": 24,
+          "is_usable": true,
+          "rejection_reason": null
+        }
+      },
+      {
+        "number": 42,
+        "bbox": {
+          "x": 1121,
+          "y": 412,
+          "w": 19,
+          "h": 23
+        },
+        "confidence": 0.520614,
+        "quality": {
+          "overall_score": 0.45,
+          "sharpness": 2549.55,
+          "brightness": 100.74,
+          "contrast": 57.85,
+          "min_dimension": 19,
+          "is_usable": false,
+          "rejection_reason": "Face resolution too small (19px < 24px)"
+        }
+      },
+      {
+        "number": 43,
+        "bbox": {
+          "x": 1194,
+          "y": 666,
+          "w": 10,
+          "h": 13
+        },
+        "confidence": 0.470725,
+        "quality": {
+          "overall_score": 0.45,
+          "sharpness": 1352.09,
+          "brightness": 40.02,
+          "contrast": 20.86,
+          "min_dimension": 10,
+          "is_usable": false,
+          "rejection_reason": "Face resolution too small (10px < 24px)"
+        }
+      },
+      {
+        "number": 44,
+        "bbox": {
+          "x": 1065,
+          "y": 402,
+          "w": 14,
+          "h": 19
+        },
+        "confidence": 0.448764,
+        "quality": {
+          "overall_score": 0.45,
+          "sharpness": 7329.61,
+          "brightness": 129.14,
+          "contrast": 65.2,
+          "min_dimension": 14,
+          "is_usable": false,
+          "rejection_reason": "Face resolution too small (14px < 24px)"
+        }
+      }
+    ],
+    "tiled_raw": [
+      {
+        "number": 1,
+        "bbox": {
+          "x": 436,
+          "y": 348,
+          "w": 24,
+          "h": 31
+        },
+        "confidence": 0.917585,
+        "quality": {
+          "overall_score": 0.8126,
+          "sharpness": 10057.57,
+          "brightness": 135.9,
+          "contrast": 52.59,
+          "min_dimension": 24,
+          "is_usable": true,
+          "rejection_reason": null
+        },
+        "metadata": {
+          "detection_pass": "tiled",
+          "tile_index": 3,
+          "tile_origin": [
+            0,
+            320
+          ]
+        }
+      },
+      {
+        "number": 2,
+        "bbox": {
+          "x": 920,
+          "y": 397,
+          "w": 18,
+          "h": 24
+        },
+        "confidence": 0.90964,
+        "quality": {
+          "overall_score": 0.45,
+          "sharpness": 9069.94,
+          "brightness": 128.4,
+          "contrast": 60.15,
+          "min_dimension": 18,
+          "is_usable": false,
+          "rejection_reason": "Face resolution too small (18px < 24px)"
+        },
+        "metadata": {
+          "detection_pass": "tiled",
+          "tile_index": 1,
+          "tile_origin": [
+            480,
+            0
+          ]
+        }
+      },
+      {
+        "number": 3,
+        "bbox": {
+          "x": 958,
+          "y": 396,
+          "w": 20,
+          "h": 27
+        },
+        "confidence": 0.916478,
+        "quality": {
+          "overall_score": 0.45,
+          "sharpness": 10202.44,
+          "brightness": 116.8,
+          "contrast": 60.36,
+          "min_dimension": 20,
+          "is_usable": false,
+          "rejection_reason": "Face resolution too small (20px < 24px)"
+        },
+        "metadata": {
+          "detection_pass": "tiled",
+          "tile_index": 5,
+          "tile_origin": [
+            640,
+            320
+          ]
+        }
+      },
+      {
+        "number": 4,
+        "bbox": {
+          "x": 1040,
+          "y": 390,
+          "w": 20,
+          "h": 25
+        },
+        "confidence": 0.836036,
+        "quality": {
+          "overall_score": 0.45,
+          "sharpness": 11140.14,
+          "brightness": 153.4,
+          "contrast": 56.7,
+          "min_dimension": 20,
+          "is_usable": false,
+          "rejection_reason": "Face resolution too small (20px < 24px)"
+        },
+        "metadata": {
+          "detection_pass": "full_image"
+        }
+      },
+      {
+        "number": 5,
+        "bbox": {
+          "x": 1060,
+          "y": 390,
+          "w": 15,
+          "h": 19
+        },
+        "confidence": 0.804264,
+        "quality": {
+          "overall_score": 0.45,
+          "sharpness": 10994.73,
+          "brightness": 122.73,
+          "contrast": 62.79,
+          "min_dimension": 15,
+          "is_usable": false,
+          "rejection_reason": "Face resolution too small (15px < 24px)"
+        },
+        "metadata": {
+          "detection_pass": "tiled",
+          "tile_index": 5,
+          "tile_origin": [
+            640,
+            320
+          ]
+        }
+      },
+      {
+        "number": 6,
+        "bbox": {
+          "x": 91,
+          "y": 430,
+          "w": 29,
+          "h": 35
+        },
+        "confidence": 0.927029,
+        "quality": {
+          "overall_score": 0.8019,
+          "sharpness": 5306.74,
+          "brightness": 103.23,
+          "contrast": 60.01,
+          "min_dimension": 29,
+          "is_usable": true,
+          "rejection_reason": null
+        },
+        "metadata": {
+          "detection_pass": "tiled",
+          "tile_index": 3,
+          "tile_origin": [
+            0,
+            320
+          ]
+        }
+      },
+      {
+        "number": 7,
+        "bbox": {
+          "x": 164,
+          "y": 436,
+          "w": 27,
+          "h": 33
+        },
+        "confidence": 0.90161,
+        "quality": {
+          "overall_score": 0.8158,
+          "sharpness": 10343.11,
+          "brightness": 116.09,
+          "contrast": 65.2,
+          "min_dimension": 27,
+          "is_usable": true,
+          "rejection_reason": null
+        },
+        "metadata": {
+          "detection_pass": "tiled",
+          "tile_index": 3,
+          "tile_origin": [
+            0,
+            320
+          ]
+        }
+      },
+      {
+        "number": 8,
+        "bbox": {
+          "x": 189,
+          "y": 419,
+          "w": 23,
+          "h": 30
+        },
+        "confidence": 0.889451,
+        "quality": {
+          "overall_score": 0.45,
+          "sharpness": 7220.73,
+          "brightness": 103.37,
+          "contrast": 61.81,
+          "min_dimension": 23,
+          "is_usable": false,
+          "rejection_reason": "Face resolution too small (23px < 24px)"
+        },
+        "metadata": {
+          "detection_pass": "tiled",
+          "tile_index": 3,
+          "tile_origin": [
+            0,
+            320
+          ]
+        }
+      },
+      {
+        "number": 9,
+        "bbox": {
+          "x": 256,
+          "y": 417,
+          "w": 21,
+          "h": 26
+        },
+        "confidence": 0.874852,
+        "quality": {
+          "overall_score": 0.45,
+          "sharpness": 6602.91,
+          "brightness": 87.72,
+          "contrast": 64.6,
+          "min_dimension": 21,
+          "is_usable": false,
+          "rejection_reason": "Face resolution too small (21px < 24px)"
+        },
+        "metadata": {
+          "detection_pass": "full_image"
+        }
+      },
+      {
+        "number": 10,
+        "bbox": {
+          "x": 272,
+          "y": 432,
+          "w": 26,
+          "h": 31
+        },
+        "confidence": 0.897938,
+        "quality": {
+          "overall_score": 0.8298,
+          "sharpness": 8670.0,
+          "brightness": 127.08,
+          "contrast": 60.86,
+          "min_dimension": 26,
+          "is_usable": true,
+          "rejection_reason": null
+        },
+        "metadata": {
+          "detection_pass": "tiled",
+          "tile_index": 3,
+          "tile_origin": [
+            0,
+            320
+          ]
+        }
+      },
+      {
+        "number": 11,
+        "bbox": {
+          "x": 346,
+          "y": 417,
+          "w": 22,
+          "h": 27
+        },
+        "confidence": 0.899354,
+        "quality": {
+          "overall_score": 0.45,
+          "sharpness": 7995.51,
+          "brightness": 105.9,
+          "contrast": 60.06,
+          "min_dimension": 22,
+          "is_usable": false,
+          "rejection_reason": "Face resolution too small (22px < 24px)"
+        },
+        "metadata": {
+          "detection_pass": "full_image"
+        }
+      },
+      {
+        "number": 12,
+        "bbox": {
+          "x": 374,
+          "y": 409,
+          "w": 19,
+          "h": 23
+        },
+        "confidence": 0.924703,
+        "quality": {
+          "overall_score": 0.45,
+          "sharpness": 9965.37,
+          "brightness": 120.72,
+          "contrast": 63.58,
+          "min_dimension": 19,
+          "is_usable": false,
+          "rejection_reason": "Face resolution too small (19px < 24px)"
+        },
+        "metadata": {
+          "detection_pass": "full_image"
+        }
+      },
+      {
+        "number": 13,
+        "bbox": {
+          "x": 458,
+          "y": 436,
+          "w": 24,
+          "h": 29
+        },
+        "confidence": 0.878841,
+        "quality": {
+          "overall_score": 0.7943,
+          "sharpness": 7763.92,
+          "brightness": 108.37,
+          "contrast": 54.47,
+          "min_dimension": 24,
+          "is_usable": true,
+          "rejection_reason": null
+        },
+        "metadata": {
+          "detection_pass": "tiled",
+          "tile_index": 3,
+          "tile_origin": [
+            0,
+            320
+          ]
+        }
+      },
+      {
+        "number": 14,
+        "bbox": {
+          "x": 518,
+          "y": 438,
+          "w": 29,
+          "h": 37
+        },
+        "confidence": 0.910998,
+        "quality": {
+          "overall_score": 0.834,
+          "sharpness": 8864.61,
+          "brightness": 123.74,
+          "contrast": 64.65,
+          "min_dimension": 29,
+          "is_usable": true,
+          "rejection_reason": null
+        },
+        "metadata": {
+          "detection_pass": "tiled",
+          "tile_index": 1,
+          "tile_origin": [
+            480,
+            0
+          ]
+        }
+      },
+      {
+        "number": 15,
+        "bbox": {
+          "x": 541,
+          "y": 412,
+          "w": 21,
+          "h": 27
+        },
+        "confidence": 0.913829,
+        "quality": {
+          "overall_score": 0.45,
+          "sharpness": 7131.84,
+          "brightness": 110.93,
+          "contrast": 65.93,
+          "min_dimension": 21,
+          "is_usable": false,
+          "rejection_reason": "Face resolution too small (21px < 24px)"
+        },
+        "metadata": {
+          "detection_pass": "full_image"
+        }
+      },
+      {
+        "number": 16,
+        "bbox": {
+          "x": 569,
+          "y": 399,
+          "w": 19,
+          "h": 25
+        },
+        "confidence": 0.881498,
+        "quality": {
+          "overall_score": 0.45,
+          "sharpness": 8058.74,
+          "brightness": 70.39,
+          "contrast": 58.75,
+          "min_dimension": 19,
+          "is_usable": false,
+          "rejection_reason": "Face resolution too small (19px < 24px)"
+        },
+        "metadata": {
+          "detection_pass": "full_image"
+        }
+      },
+      {
+        "number": 17,
+        "bbox": {
+          "x": 570,
+          "y": 422,
+          "w": 26,
+          "h": 32
+        },
+        "confidence": 0.857629,
+        "quality": {
+          "overall_score": 0.787,
+          "sharpness": 6046.73,
+          "brightness": 99.71,
+          "contrast": 61.75,
+          "min_dimension": 26,
+          "is_usable": true,
+          "rejection_reason": null
+        },
+        "metadata": {
+          "detection_pass": "full_image"
+        }
+      },
+      {
+        "number": 18,
+        "bbox": {
+          "x": 606,
+          "y": 408,
+          "w": 18,
+          "h": 22
+        },
+        "confidence": 0.788731,
+        "quality": {
+          "overall_score": 0.45,
+          "sharpness": 12275.52,
+          "brightness": 112.92,
+          "contrast": 75.66,
+          "min_dimension": 18,
+          "is_usable": false,
+          "rejection_reason": "Face resolution too small (18px < 24px)"
+        },
+        "metadata": {
+          "detection_pass": "tiled",
+          "tile_index": 3,
+          "tile_origin": [
+            0,
+            320
+          ]
+        }
+      },
+      {
+        "number": 19,
+        "bbox": {
+          "x": 613,
+          "y": 447,
+          "w": 27,
+          "h": 34
+        },
+        "confidence": 0.921084,
+        "quality": {
+          "overall_score": 0.7906,
+          "sharpness": 6457.52,
+          "brightness": 99.96,
+          "contrast": 62.94,
+          "min_dimension": 27,
+          "is_usable": true,
+          "rejection_reason": null
+        },
+        "metadata": {
+          "detection_pass": "tiled",
+          "tile_index": 1,
+          "tile_origin": [
+            480,
+            0
+          ]
+        }
+      },
+      {
+        "number": 20,
+        "bbox": {
+          "x": 628,
+          "y": 414,
+          "w": 20,
+          "h": 25
+        },
+        "confidence": 0.855329,
+        "quality": {
+          "overall_score": 0.45,
+          "sharpness": 10678.88,
+          "brightness": 108.67,
+          "contrast": 54.42,
+          "min_dimension": 20,
+          "is_usable": false,
+          "rejection_reason": "Face resolution too small (20px < 24px)"
+        },
+        "metadata": {
+          "detection_pass": "tiled",
+          "tile_index": 4,
+          "tile_origin": [
+            480,
+            320
+          ]
+        }
+      },
+      {
+        "number": 21,
+        "bbox": {
+          "x": 641,
+          "y": 416,
+          "w": 23,
+          "h": 30
+        },
+        "confidence": 0.897155,
+        "quality": {
+          "overall_score": 0.45,
+          "sharpness": 5683.38,
+          "brightness": 103.34,
+          "contrast": 55.13,
+          "min_dimension": 23,
+          "is_usable": false,
+          "rejection_reason": "Face resolution too small (23px < 24px)"
+        },
+        "metadata": {
+          "detection_pass": "tiled",
+          "tile_index": 5,
+          "tile_origin": [
+            640,
+            320
+          ]
+        }
+      },
+      {
+        "number": 22,
+        "bbox": {
+          "x": 680,
+          "y": 401,
+          "w": 22,
+          "h": 26
+        },
+        "confidence": 0.862023,
+        "quality": {
+          "overall_score": 0.45,
+          "sharpness": 8881.75,
+          "brightness": 87.34,
+          "contrast": 64.51,
+          "min_dimension": 22,
+          "is_usable": false,
+          "rejection_reason": "Face resolution too small (22px < 24px)"
+        },
+        "metadata": {
+          "detection_pass": "tiled",
+          "tile_index": 2,
+          "tile_origin": [
+            640,
+            0
+          ]
+        }
+      },
+      {
+        "number": 23,
+        "bbox": {
+          "x": 731,
+          "y": 407,
+          "w": 24,
+          "h": 29
+        },
+        "confidence": 0.90687,
+        "quality": {
+          "overall_score": 0.8248,
+          "sharpness": 6646.51,
+          "brightness": 128.15,
+          "contrast": 51.86,
+          "min_dimension": 24,
+          "is_usable": true,
+          "rejection_reason": null
+        },
+        "metadata": {
+          "detection_pass": "tiled",
+          "tile_index": 5,
+          "tile_origin": [
+            640,
+            320
+          ]
+        }
+      },
+      {
+        "number": 24,
+        "bbox": {
+          "x": 763,
+          "y": 404,
+          "w": 22,
+          "h": 28
+        },
+        "confidence": 0.921591,
+        "quality": {
+          "overall_score": 0.45,
+          "sharpness": 8791.62,
+          "brightness": 119.72,
+          "contrast": 64.27,
+          "min_dimension": 22,
+          "is_usable": false,
+          "rejection_reason": "Face resolution too small (22px < 24px)"
+        },
+        "metadata": {
+          "detection_pass": "tiled",
+          "tile_index": 5,
+          "tile_origin": [
+            640,
+            320
+          ]
+        }
+      },
+      {
+        "number": 25,
+        "bbox": {
+          "x": 808,
+          "y": 433,
+          "w": 25,
+          "h": 28
+        },
+        "confidence": 0.692441,
+        "quality": {
+          "overall_score": 0.7638,
+          "sharpness": 3818.83,
+          "brightness": 86.81,
+          "contrast": 70.9,
+          "min_dimension": 25,
+          "is_usable": true,
+          "rejection_reason": null
+        },
+        "metadata": {
+          "detection_pass": "tiled",
+          "tile_index": 5,
+          "tile_origin": [
+            640,
+            320
+          ]
+        }
+      },
+      {
+        "number": 26,
+        "bbox": {
+          "x": 878,
+          "y": 447,
+          "w": 32,
+          "h": 37
+        },
+        "confidence": 0.917397,
+        "quality": {
+          "overall_score": 0.7959,
+          "sharpness": 6132.6,
+          "brightness": 93.36,
+          "contrast": 62.13,
+          "min_dimension": 32,
+          "is_usable": true,
+          "rejection_reason": null
+        },
+        "metadata": {
+          "detection_pass": "full_image"
+        }
+      },
+      {
+        "number": 27,
+        "bbox": {
+          "x": 981,
+          "y": 412,
+          "w": 21,
+          "h": 26
+        },
+        "confidence": 0.922302,
+        "quality": {
+          "overall_score": 0.45,
+          "sharpness": 8395.08,
+          "brightness": 143.36,
+          "contrast": 58.2,
+          "min_dimension": 21,
+          "is_usable": false,
+          "rejection_reason": "Face resolution too small (21px < 24px)"
+        },
+        "metadata": {
+          "detection_pass": "tiled",
+          "tile_index": 5,
+          "tile_origin": [
+            640,
+            320
+          ]
+        }
+      },
+      {
+        "number": 28,
+        "bbox": {
+          "x": 1011,
+          "y": 409,
+          "w": 20,
+          "h": 26
+        },
+        "confidence": 0.885753,
+        "quality": {
+          "overall_score": 0.45,
+          "sharpness": 9012.89,
+          "brightness": 117.76,
+          "contrast": 58.6,
+          "min_dimension": 20,
+          "is_usable": false,
+          "rejection_reason": "Face resolution too small (20px < 24px)"
+        },
+        "metadata": {
+          "detection_pass": "full_image"
+        }
+      },
+      {
+        "number": 29,
+        "bbox": {
+          "x": 1044,
+          "y": 425,
+          "w": 23,
+          "h": 27
+        },
+        "confidence": 0.931334,
+        "quality": {
+          "overall_score": 0.45,
+          "sharpness": 6822.89,
+          "brightness": 144.81,
+          "contrast": 60.35,
+          "min_dimension": 23,
+          "is_usable": false,
+          "rejection_reason": "Face resolution too small (23px < 24px)"
+        },
+        "metadata": {
+          "detection_pass": "tiled",
+          "tile_index": 5,
+          "tile_origin": [
+            640,
+            320
+          ]
+        }
+      },
+      {
+        "number": 30,
+        "bbox": {
+          "x": 1066,
+          "y": 403,
+          "w": 14,
+          "h": 19
+        },
+        "confidence": 0.4948,
+        "quality": {
+          "overall_score": 0.45,
+          "sharpness": 7823.46,
+          "brightness": 134.59,
+          "contrast": 65.49,
+          "min_dimension": 14,
+          "is_usable": false,
+          "rejection_reason": "Face resolution too small (14px < 24px)"
+        },
+        "metadata": {
+          "detection_pass": "tiled",
+          "tile_index": 4,
+          "tile_origin": [
+            480,
+            320
+          ]
+        }
+      },
+      {
+        "number": 31,
+        "bbox": {
+          "x": 1113,
+          "y": 433,
+          "w": 29,
+          "h": 38
+        },
+        "confidence": 0.90478,
+        "quality": {
+          "overall_score": 0.8166,
+          "sharpness": 5970.47,
+          "brightness": 143.39,
+          "contrast": 55.85,
+          "min_dimension": 29,
+          "is_usable": true,
+          "rejection_reason": null
+        },
+        "metadata": {
+          "detection_pass": "tiled",
+          "tile_index": 2,
+          "tile_origin": [
+            640,
+            0
+          ]
+        }
+      },
+      {
+        "number": 32,
+        "bbox": {
+          "x": 1121,
+          "y": 412,
+          "w": 19,
+          "h": 23
+        },
+        "confidence": 0.52859,
+        "quality": {
+          "overall_score": 0.45,
+          "sharpness": 2549.55,
+          "brightness": 100.74,
+          "contrast": 57.85,
+          "min_dimension": 19,
+          "is_usable": false,
+          "rejection_reason": "Face resolution too small (19px < 24px)"
+        },
+        "metadata": {
+          "detection_pass": "tiled",
+          "tile_index": 5,
+          "tile_origin": [
+            640,
+            320
+          ]
+        }
+      },
+      {
+        "number": 33,
+        "bbox": {
+          "x": 1168,
+          "y": 411,
+          "w": 24,
+          "h": 31
+        },
+        "confidence": 0.904775,
+        "quality": {
+          "overall_score": 0.7843,
+          "sharpness": 6529.72,
+          "brightness": 101.98,
+          "contrast": 69.49,
+          "min_dimension": 24,
+          "is_usable": true,
+          "rejection_reason": null
+        },
+        "metadata": {
+          "detection_pass": "tiled",
+          "tile_index": 5,
+          "tile_origin": [
+            640,
+            320
+          ]
+        }
+      },
+      {
+        "number": 34,
+        "bbox": {
+          "x": 1195,
+          "y": 442,
+          "w": 27,
+          "h": 34
+        },
+        "confidence": 0.934592,
+        "quality": {
+          "overall_score": 0.8231,
+          "sharpness": 5612.38,
+          "brightness": 120.8,
+          "contrast": 65.69,
+          "min_dimension": 27,
+          "is_usable": true,
+          "rejection_reason": null
+        },
+        "metadata": {
+          "detection_pass": "full_image"
+        }
+      },
+      {
+        "number": 35,
+        "bbox": {
+          "x": 197,
+          "y": 455,
+          "w": 31,
+          "h": 38
+        },
+        "confidence": 0.89536,
+        "quality": {
+          "overall_score": 0.8457,
+          "sharpness": 7570.28,
+          "brightness": 127.28,
+          "contrast": 60.54,
+          "min_dimension": 31,
+          "is_usable": true,
+          "rejection_reason": null
+        },
+        "metadata": {
+          "detection_pass": "tiled",
+          "tile_index": 3,
+          "tile_origin": [
+            0,
+            320
+          ]
+        }
+      },
+      {
+        "number": 36,
+        "bbox": {
+          "x": 383,
+          "y": 492,
+          "w": 43,
+          "h": 52
+        },
+        "confidence": 0.921735,
+        "quality": {
+          "overall_score": 0.8486,
+          "sharpness": 3900.96,
+          "brightness": 150.91,
+          "contrast": 66.67,
+          "min_dimension": 43,
+          "is_usable": true,
+          "rejection_reason": null
+        },
+        "metadata": {
+          "detection_pass": "full_image"
+        }
+      },
+      {
+        "number": 37,
+        "bbox": {
+          "x": 479,
+          "y": 452,
+          "w": 35,
+          "h": 44
+        },
+        "confidence": 0.902629,
+        "quality": {
+          "overall_score": 0.8366,
+          "sharpness": 6829.73,
+          "brightness": 142.58,
+          "contrast": 50.31,
+          "min_dimension": 35,
+          "is_usable": true,
+          "rejection_reason": null
+        },
+        "metadata": {
+          "detection_pass": "tiled",
+          "tile_index": 0,
+          "tile_origin": [
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "number": 38,
+        "bbox": {
+          "x": 565,
+          "y": 465,
+          "w": 36,
+          "h": 45
+        },
+        "confidence": 0.921424,
+        "quality": {
+          "overall_score": 0.8543,
+          "sharpness": 5284.67,
+          "brightness": 122.75,
+          "contrast": 65.14,
+          "min_dimension": 36,
+          "is_usable": true,
+          "rejection_reason": null
+        },
+        "metadata": {
+          "detection_pass": "tiled",
+          "tile_index": 1,
+          "tile_origin": [
+            480,
+            0
+          ]
+        }
+      },
+      {
+        "number": 39,
+        "bbox": {
+          "x": 676,
+          "y": 463,
+          "w": 34,
+          "h": 39
+        },
+        "confidence": 0.917439,
+        "quality": {
+          "overall_score": 0.8146,
+          "sharpness": 6733.12,
+          "brightness": 101.37,
+          "contrast": 71.21,
+          "min_dimension": 34,
+          "is_usable": true,
+          "rejection_reason": null
+        },
+        "metadata": {
+          "detection_pass": "tiled",
+          "tile_index": 2,
+          "tile_origin": [
+            640,
+            0
+          ]
+        }
+      },
+      {
+        "number": 40,
+        "bbox": {
+          "x": 723,
+          "y": 458,
+          "w": 28,
+          "h": 31
+        },
+        "confidence": 0.7875,
+        "quality": {
+          "overall_score": 0.7876,
+          "sharpness": 6971.26,
+          "brightness": 96.08,
+          "contrast": 55.92,
+          "min_dimension": 28,
+          "is_usable": true,
+          "rejection_reason": null
+        },
+        "metadata": {
+          "detection_pass": "tiled",
+          "tile_index": 4,
+          "tile_origin": [
+            480,
+            320
+          ]
+        }
+      },
+      {
+        "number": 41,
+        "bbox": {
+          "x": 785,
+          "y": 451,
+          "w": 33,
+          "h": 40
+        },
+        "confidence": 0.9222,
+        "quality": {
+          "overall_score": 0.8305,
+          "sharpness": 5122.22,
+          "brightness": 113.5,
+          "contrast": 56.27,
+          "min_dimension": 33,
+          "is_usable": true,
+          "rejection_reason": null
+        },
+        "metadata": {
+          "detection_pass": "tiled",
+          "tile_index": 1,
+          "tile_origin": [
+            480,
+            0
+          ]
+        }
+      },
+      {
+        "number": 42,
+        "bbox": {
+          "x": 891,
+          "y": 491,
+          "w": 42,
+          "h": 50
+        },
+        "confidence": 0.919846,
+        "quality": {
+          "overall_score": 0.8545,
+          "sharpness": 6941.32,
+          "brightness": 145.11,
+          "contrast": 63.5,
+          "min_dimension": 42,
+          "is_usable": true,
+          "rejection_reason": null
+        },
+        "metadata": {
+          "detection_pass": "tiled",
+          "tile_index": 4,
+          "tile_origin": [
+            480,
+            320
+          ]
+        }
+      },
+      {
+        "number": 43,
+        "bbox": {
+          "x": 804,
+          "y": 503,
+          "w": 43,
+          "h": 50
+        },
+        "confidence": 0.917147,
+        "quality": {
+          "overall_score": 0.8615,
+          "sharpness": 7720.25,
+          "brightness": 137.25,
+          "contrast": 47.89,
+          "min_dimension": 43,
+          "is_usable": true,
+          "rejection_reason": null
+        },
+        "metadata": {
+          "detection_pass": "full_image"
+        }
+      },
+      {
+        "number": 44,
+        "bbox": {
+          "x": 1194,
+          "y": 666,
+          "w": 10,
+          "h": 13
+        },
+        "confidence": 0.470725,
+        "quality": {
+          "overall_score": 0.45,
+          "sharpness": 1352.09,
+          "brightness": 40.02,
+          "contrast": 20.86,
+          "min_dimension": 10,
+          "is_usable": false,
+          "rejection_reason": "Face resolution too small (10px < 24px)"
+        },
+        "metadata": {
+          "detection_pass": "full_image"
+        }
+      }
+    ],
+    "final": [
+      {
+        "number": 1,
+        "bbox": {
+          "x": 1195,
+          "y": 442,
+          "w": 27,
+          "h": 34
+        },
+        "confidence": 0.934592,
+        "quality": {
+          "overall_score": 0.8231,
+          "sharpness": 5612.38,
+          "brightness": 120.8,
+          "contrast": 65.69,
+          "min_dimension": 27,
+          "is_usable": true,
+          "rejection_reason": null
+        },
+        "aligned_crop": "reports/classroom_image_test_results/face_01_aligned.jpg"
+      },
+      {
+        "number": 2,
+        "bbox": {
+          "x": 1044,
+          "y": 425,
+          "w": 23,
+          "h": 27
+        },
+        "confidence": 0.931334,
+        "quality": {
+          "overall_score": 0.45,
+          "sharpness": 6822.89,
+          "brightness": 144.81,
+          "contrast": 60.35,
+          "min_dimension": 23,
+          "is_usable": false,
+          "rejection_reason": "Face resolution too small (23px < 24px)"
+        },
+        "aligned_crop": "reports/classroom_image_test_results/face_02_aligned.jpg"
+      },
+      {
+        "number": 3,
+        "bbox": {
+          "x": 91,
+          "y": 430,
+          "w": 29,
+          "h": 35
+        },
+        "confidence": 0.927029,
+        "quality": {
+          "overall_score": 0.8019,
+          "sharpness": 5306.74,
+          "brightness": 103.23,
+          "contrast": 60.01,
+          "min_dimension": 29,
+          "is_usable": true,
+          "rejection_reason": null
+        },
+        "aligned_crop": "reports/classroom_image_test_results/face_03_aligned.jpg"
+      },
+      {
+        "number": 4,
+        "bbox": {
+          "x": 374,
+          "y": 409,
+          "w": 19,
+          "h": 23
+        },
+        "confidence": 0.924703,
+        "quality": {
+          "overall_score": 0.45,
+          "sharpness": 9965.37,
+          "brightness": 120.72,
+          "contrast": 63.58,
+          "min_dimension": 19,
+          "is_usable": false,
+          "rejection_reason": "Face resolution too small (19px < 24px)"
+        },
+        "aligned_crop": "reports/classroom_image_test_results/face_04_aligned.jpg"
+      },
+      {
+        "number": 5,
+        "bbox": {
+          "x": 981,
+          "y": 412,
+          "w": 21,
+          "h": 26
+        },
+        "confidence": 0.922302,
+        "quality": {
+          "overall_score": 0.45,
+          "sharpness": 8395.08,
+          "brightness": 143.36,
+          "contrast": 58.2,
+          "min_dimension": 21,
+          "is_usable": false,
+          "rejection_reason": "Face resolution too small (21px < 24px)"
+        },
+        "aligned_crop": "reports/classroom_image_test_results/face_05_aligned.jpg"
+      },
+      {
+        "number": 6,
+        "bbox": {
+          "x": 785,
+          "y": 451,
+          "w": 33,
+          "h": 40
+        },
+        "confidence": 0.9222,
+        "quality": {
+          "overall_score": 0.8305,
+          "sharpness": 5122.22,
+          "brightness": 113.5,
+          "contrast": 56.27,
+          "min_dimension": 33,
+          "is_usable": true,
+          "rejection_reason": null
+        },
+        "aligned_crop": "reports/classroom_image_test_results/face_06_aligned.jpg"
+      },
+      {
+        "number": 7,
+        "bbox": {
+          "x": 383,
+          "y": 492,
+          "w": 43,
+          "h": 52
+        },
+        "confidence": 0.921735,
+        "quality": {
+          "overall_score": 0.8486,
+          "sharpness": 3900.96,
+          "brightness": 150.91,
+          "contrast": 66.67,
+          "min_dimension": 43,
+          "is_usable": true,
+          "rejection_reason": null
+        },
+        "aligned_crop": "reports/classroom_image_test_results/face_07_aligned.jpg"
+      },
+      {
+        "number": 8,
+        "bbox": {
+          "x": 763,
+          "y": 404,
+          "w": 22,
+          "h": 28
+        },
+        "confidence": 0.921591,
+        "quality": {
+          "overall_score": 0.45,
+          "sharpness": 8791.62,
+          "brightness": 119.72,
+          "contrast": 64.27,
+          "min_dimension": 22,
+          "is_usable": false,
+          "rejection_reason": "Face resolution too small (22px < 24px)"
+        },
+        "aligned_crop": "reports/classroom_image_test_results/face_08_aligned.jpg"
+      },
+      {
+        "number": 9,
+        "bbox": {
+          "x": 565,
+          "y": 465,
+          "w": 36,
+          "h": 45
+        },
+        "confidence": 0.921424,
+        "quality": {
+          "overall_score": 0.8543,
+          "sharpness": 5284.67,
+          "brightness": 122.75,
+          "contrast": 65.14,
+          "min_dimension": 36,
+          "is_usable": true,
+          "rejection_reason": null
+        },
+        "aligned_crop": "reports/classroom_image_test_results/face_09_aligned.jpg"
+      },
+      {
+        "number": 10,
+        "bbox": {
+          "x": 613,
+          "y": 447,
+          "w": 27,
+          "h": 34
+        },
+        "confidence": 0.921084,
+        "quality": {
+          "overall_score": 0.7906,
+          "sharpness": 6457.52,
+          "brightness": 99.96,
+          "contrast": 62.94,
+          "min_dimension": 27,
+          "is_usable": true,
+          "rejection_reason": null
+        },
+        "aligned_crop": "reports/classroom_image_test_results/face_10_aligned.jpg"
+      },
+      {
+        "number": 11,
+        "bbox": {
+          "x": 891,
+          "y": 491,
+          "w": 42,
+          "h": 50
+        },
+        "confidence": 0.919846,
+        "quality": {
+          "overall_score": 0.8545,
+          "sharpness": 6941.32,
+          "brightness": 145.11,
+          "contrast": 63.5,
+          "min_dimension": 42,
+          "is_usable": true,
+          "rejection_reason": null
+        },
+        "aligned_crop": "reports/classroom_image_test_results/face_11_aligned.jpg"
+      },
+      {
+        "number": 12,
+        "bbox": {
+          "x": 436,
+          "y": 348,
+          "w": 24,
+          "h": 31
+        },
+        "confidence": 0.917585,
+        "quality": {
+          "overall_score": 0.8126,
+          "sharpness": 10057.57,
+          "brightness": 135.9,
+          "contrast": 52.59,
+          "min_dimension": 24,
+          "is_usable": true,
+          "rejection_reason": null
+        },
+        "aligned_crop": "reports/classroom_image_test_results/face_12_aligned.jpg"
+      },
+      {
+        "number": 13,
+        "bbox": {
+          "x": 676,
+          "y": 463,
+          "w": 34,
+          "h": 39
+        },
+        "confidence": 0.917439,
+        "quality": {
+          "overall_score": 0.8146,
+          "sharpness": 6733.12,
+          "brightness": 101.37,
+          "contrast": 71.21,
+          "min_dimension": 34,
+          "is_usable": true,
+          "rejection_reason": null
+        },
+        "aligned_crop": "reports/classroom_image_test_results/face_13_aligned.jpg"
+      },
+      {
+        "number": 14,
+        "bbox": {
+          "x": 878,
+          "y": 447,
+          "w": 32,
+          "h": 37
+        },
+        "confidence": 0.917397,
+        "quality": {
+          "overall_score": 0.7959,
+          "sharpness": 6132.6,
+          "brightness": 93.36,
+          "contrast": 62.13,
+          "min_dimension": 32,
+          "is_usable": true,
+          "rejection_reason": null
+        },
+        "aligned_crop": "reports/classroom_image_test_results/face_14_aligned.jpg"
+      },
+      {
+        "number": 15,
+        "bbox": {
+          "x": 804,
+          "y": 503,
+          "w": 43,
+          "h": 50
+        },
+        "confidence": 0.917147,
+        "quality": {
+          "overall_score": 0.8615,
+          "sharpness": 7720.25,
+          "brightness": 137.25,
+          "contrast": 47.89,
+          "min_dimension": 43,
+          "is_usable": true,
+          "rejection_reason": null
+        },
+        "aligned_crop": "reports/classroom_image_test_results/face_15_aligned.jpg"
+      },
+      {
+        "number": 16,
+        "bbox": {
+          "x": 958,
+          "y": 396,
+          "w": 20,
+          "h": 27
+        },
+        "confidence": 0.916478,
+        "quality": {
+          "overall_score": 0.45,
+          "sharpness": 10202.44,
+          "brightness": 116.8,
+          "contrast": 60.36,
+          "min_dimension": 20,
+          "is_usable": false,
+          "rejection_reason": "Face resolution too small (20px < 24px)"
+        },
+        "aligned_crop": "reports/classroom_image_test_results/face_16_aligned.jpg"
+      },
+      {
+        "number": 17,
+        "bbox": {
+          "x": 541,
+          "y": 412,
+          "w": 21,
+          "h": 27
+        },
+        "confidence": 0.913829,
+        "quality": {
+          "overall_score": 0.45,
+          "sharpness": 7131.84,
+          "brightness": 110.93,
+          "contrast": 65.93,
+          "min_dimension": 21,
+          "is_usable": false,
+          "rejection_reason": "Face resolution too small (21px < 24px)"
+        },
+        "aligned_crop": "reports/classroom_image_test_results/face_17_aligned.jpg"
+      },
+      {
+        "number": 18,
+        "bbox": {
+          "x": 518,
+          "y": 438,
+          "w": 29,
+          "h": 37
+        },
+        "confidence": 0.910998,
+        "quality": {
+          "overall_score": 0.834,
+          "sharpness": 8864.61,
+          "brightness": 123.74,
+          "contrast": 64.65,
+          "min_dimension": 29,
+          "is_usable": true,
+          "rejection_reason": null
+        },
+        "aligned_crop": "reports/classroom_image_test_results/face_18_aligned.jpg"
+      },
+      {
+        "number": 19,
+        "bbox": {
+          "x": 920,
+          "y": 397,
+          "w": 18,
+          "h": 24
+        },
+        "confidence": 0.90964,
+        "quality": {
+          "overall_score": 0.45,
+          "sharpness": 9069.94,
+          "brightness": 128.4,
+          "contrast": 60.15,
+          "min_dimension": 18,
+          "is_usable": false,
+          "rejection_reason": "Face resolution too small (18px < 24px)"
+        },
+        "aligned_crop": "reports/classroom_image_test_results/face_19_aligned.jpg"
+      },
+      {
+        "number": 20,
+        "bbox": {
+          "x": 731,
+          "y": 407,
+          "w": 24,
+          "h": 29
+        },
+        "confidence": 0.90687,
+        "quality": {
+          "overall_score": 0.8248,
+          "sharpness": 6646.51,
+          "brightness": 128.15,
+          "contrast": 51.86,
+          "min_dimension": 24,
+          "is_usable": true,
+          "rejection_reason": null
+        },
+        "aligned_crop": "reports/classroom_image_test_results/face_20_aligned.jpg"
+      },
+      {
+        "number": 21,
+        "bbox": {
+          "x": 1113,
+          "y": 433,
+          "w": 29,
+          "h": 38
+        },
+        "confidence": 0.90478,
+        "quality": {
+          "overall_score": 0.8166,
+          "sharpness": 5970.47,
+          "brightness": 143.39,
+          "contrast": 55.85,
+          "min_dimension": 29,
+          "is_usable": true,
+          "rejection_reason": null
+        },
+        "aligned_crop": "reports/classroom_image_test_results/face_21_aligned.jpg"
+      },
+      {
+        "number": 22,
+        "bbox": {
+          "x": 1168,
+          "y": 411,
+          "w": 24,
+          "h": 31
+        },
+        "confidence": 0.904775,
+        "quality": {
+          "overall_score": 0.7843,
+          "sharpness": 6529.72,
+          "brightness": 101.98,
+          "contrast": 69.49,
+          "min_dimension": 24,
+          "is_usable": true,
+          "rejection_reason": null
+        },
+        "aligned_crop": "reports/classroom_image_test_results/face_22_aligned.jpg"
+      },
+      {
+        "number": 23,
+        "bbox": {
+          "x": 479,
+          "y": 452,
+          "w": 35,
+          "h": 44
+        },
+        "confidence": 0.902629,
+        "quality": {
+          "overall_score": 0.8366,
+          "sharpness": 6829.73,
+          "brightness": 142.58,
+          "contrast": 50.31,
+          "min_dimension": 35,
+          "is_usable": true,
+          "rejection_reason": null
+        },
+        "aligned_crop": "reports/classroom_image_test_results/face_23_aligned.jpg"
+      },
+      {
+        "number": 24,
+        "bbox": {
+          "x": 164,
+          "y": 436,
+          "w": 27,
+          "h": 33
+        },
+        "confidence": 0.90161,
+        "quality": {
+          "overall_score": 0.8158,
+          "sharpness": 10343.11,
+          "brightness": 116.09,
+          "contrast": 65.2,
+          "min_dimension": 27,
+          "is_usable": true,
+          "rejection_reason": null
+        },
+        "aligned_crop": "reports/classroom_image_test_results/face_24_aligned.jpg"
+      },
+      {
+        "number": 25,
+        "bbox": {
+          "x": 346,
+          "y": 417,
+          "w": 22,
+          "h": 27
+        },
+        "confidence": 0.899354,
+        "quality": {
+          "overall_score": 0.45,
+          "sharpness": 7995.51,
+          "brightness": 105.9,
+          "contrast": 60.06,
+          "min_dimension": 22,
+          "is_usable": false,
+          "rejection_reason": "Face resolution too small (22px < 24px)"
+        },
+        "aligned_crop": "reports/classroom_image_test_results/face_25_aligned.jpg"
+      },
+      {
+        "number": 26,
+        "bbox": {
+          "x": 272,
+          "y": 432,
+          "w": 26,
+          "h": 31
+        },
+        "confidence": 0.897938,
+        "quality": {
+          "overall_score": 0.8298,
+          "sharpness": 8670.0,
+          "brightness": 127.08,
+          "contrast": 60.86,
+          "min_dimension": 26,
+          "is_usable": true,
+          "rejection_reason": null
+        },
+        "aligned_crop": "reports/classroom_image_test_results/face_26_aligned.jpg"
+      },
+      {
+        "number": 27,
+        "bbox": {
+          "x": 641,
+          "y": 416,
+          "w": 23,
+          "h": 30
+        },
+        "confidence": 0.897155,
+        "quality": {
+          "overall_score": 0.45,
+          "sharpness": 5683.38,
+          "brightness": 103.34,
+          "contrast": 55.13,
+          "min_dimension": 23,
+          "is_usable": false,
+          "rejection_reason": "Face resolution too small (23px < 24px)"
+        },
+        "aligned_crop": "reports/classroom_image_test_results/face_27_aligned.jpg"
+      },
+      {
+        "number": 28,
+        "bbox": {
+          "x": 197,
+          "y": 455,
+          "w": 31,
+          "h": 38
+        },
+        "confidence": 0.89536,
+        "quality": {
+          "overall_score": 0.8457,
+          "sharpness": 7570.28,
+          "brightness": 127.28,
+          "contrast": 60.54,
+          "min_dimension": 31,
+          "is_usable": true,
+          "rejection_reason": null
+        },
+        "aligned_crop": "reports/classroom_image_test_results/face_28_aligned.jpg"
+      },
+      {
+        "number": 29,
+        "bbox": {
+          "x": 189,
+          "y": 419,
+          "w": 23,
+          "h": 30
+        },
+        "confidence": 0.889451,
+        "quality": {
+          "overall_score": 0.45,
+          "sharpness": 7220.73,
+          "brightness": 103.37,
+          "contrast": 61.81,
+          "min_dimension": 23,
+          "is_usable": false,
+          "rejection_reason": "Face resolution too small (23px < 24px)"
+        },
+        "aligned_crop": "reports/classroom_image_test_results/face_29_aligned.jpg"
+      },
+      {
+        "number": 30,
+        "bbox": {
+          "x": 1011,
+          "y": 409,
+          "w": 20,
+          "h": 26
+        },
+        "confidence": 0.885753,
+        "quality": {
+          "overall_score": 0.45,
+          "sharpness": 9012.89,
+          "brightness": 117.76,
+          "contrast": 58.6,
+          "min_dimension": 20,
+          "is_usable": false,
+          "rejection_reason": "Face resolution too small (20px < 24px)"
+        },
+        "aligned_crop": "reports/classroom_image_test_results/face_30_aligned.jpg"
+      },
+      {
+        "number": 31,
+        "bbox": {
+          "x": 569,
+          "y": 399,
+          "w": 19,
+          "h": 25
+        },
+        "confidence": 0.881498,
+        "quality": {
+          "overall_score": 0.45,
+          "sharpness": 8058.74,
+          "brightness": 70.39,
+          "contrast": 58.75,
+          "min_dimension": 19,
+          "is_usable": false,
+          "rejection_reason": "Face resolution too small (19px < 24px)"
+        },
+        "aligned_crop": "reports/classroom_image_test_results/face_31_aligned.jpg"
+      },
+      {
+        "number": 32,
+        "bbox": {
+          "x": 458,
+          "y": 436,
+          "w": 24,
+          "h": 29
+        },
+        "confidence": 0.878841,
+        "quality": {
+          "overall_score": 0.7943,
+          "sharpness": 7763.92,
+          "brightness": 108.37,
+          "contrast": 54.47,
+          "min_dimension": 24,
+          "is_usable": true,
+          "rejection_reason": null
+        },
+        "aligned_crop": "reports/classroom_image_test_results/face_32_aligned.jpg"
+      },
+      {
+        "number": 33,
+        "bbox": {
+          "x": 256,
+          "y": 417,
+          "w": 21,
+          "h": 26
+        },
+        "confidence": 0.874852,
+        "quality": {
+          "overall_score": 0.45,
+          "sharpness": 6602.91,
+          "brightness": 87.72,
+          "contrast": 64.6,
+          "min_dimension": 21,
+          "is_usable": false,
+          "rejection_reason": "Face resolution too small (21px < 24px)"
+        },
+        "aligned_crop": "reports/classroom_image_test_results/face_33_aligned.jpg"
+      },
+      {
+        "number": 34,
+        "bbox": {
+          "x": 680,
+          "y": 401,
+          "w": 22,
+          "h": 26
+        },
+        "confidence": 0.862023,
+        "quality": {
+          "overall_score": 0.45,
+          "sharpness": 8881.75,
+          "brightness": 87.34,
+          "contrast": 64.51,
+          "min_dimension": 22,
+          "is_usable": false,
+          "rejection_reason": "Face resolution too small (22px < 24px)"
+        },
+        "aligned_crop": "reports/classroom_image_test_results/face_34_aligned.jpg"
+      },
+      {
+        "number": 35,
+        "bbox": {
+          "x": 570,
+          "y": 422,
+          "w": 26,
+          "h": 32
+        },
+        "confidence": 0.857629,
+        "quality": {
+          "overall_score": 0.787,
+          "sharpness": 6046.73,
+          "brightness": 99.71,
+          "contrast": 61.75,
+          "min_dimension": 26,
+          "is_usable": true,
+          "rejection_reason": null
+        },
+        "aligned_crop": "reports/classroom_image_test_results/face_35_aligned.jpg"
+      },
+      {
+        "number": 36,
+        "bbox": {
+          "x": 628,
+          "y": 414,
+          "w": 20,
+          "h": 25
+        },
+        "confidence": 0.855329,
+        "quality": {
+          "overall_score": 0.45,
+          "sharpness": 10678.88,
+          "brightness": 108.67,
+          "contrast": 54.42,
+          "min_dimension": 20,
+          "is_usable": false,
+          "rejection_reason": "Face resolution too small (20px < 24px)"
+        },
+        "aligned_crop": "reports/classroom_image_test_results/face_36_aligned.jpg"
+      },
+      {
+        "number": 37,
+        "bbox": {
+          "x": 1040,
+          "y": 390,
+          "w": 20,
+          "h": 25
+        },
+        "confidence": 0.836036,
+        "quality": {
+          "overall_score": 0.45,
+          "sharpness": 11140.14,
+          "brightness": 153.4,
+          "contrast": 56.7,
+          "min_dimension": 20,
+          "is_usable": false,
+          "rejection_reason": "Face resolution too small (20px < 24px)"
+        },
+        "aligned_crop": "reports/classroom_image_test_results/face_37_aligned.jpg"
+      },
+      {
+        "number": 38,
+        "bbox": {
+          "x": 1060,
+          "y": 390,
+          "w": 15,
+          "h": 19
+        },
+        "confidence": 0.804264,
+        "quality": {
+          "overall_score": 0.45,
+          "sharpness": 10994.73,
+          "brightness": 122.73,
+          "contrast": 62.79,
+          "min_dimension": 15,
+          "is_usable": false,
+          "rejection_reason": "Face resolution too small (15px < 24px)"
+        },
+        "aligned_crop": "reports/classroom_image_test_results/face_38_aligned.jpg"
+      },
+      {
+        "number": 39,
+        "bbox": {
+          "x": 606,
+          "y": 408,
+          "w": 18,
+          "h": 22
+        },
+        "confidence": 0.788731,
+        "quality": {
+          "overall_score": 0.45,
+          "sharpness": 12275.52,
+          "brightness": 112.92,
+          "contrast": 75.66,
+          "min_dimension": 18,
+          "is_usable": false,
+          "rejection_reason": "Face resolution too small (18px < 24px)"
+        },
+        "aligned_crop": "reports/classroom_image_test_results/face_39_aligned.jpg"
+      },
+      {
+        "number": 40,
+        "bbox": {
+          "x": 723,
+          "y": 458,
+          "w": 28,
+          "h": 31
+        },
+        "confidence": 0.7875,
+        "quality": {
+          "overall_score": 0.7876,
+          "sharpness": 6971.26,
+          "brightness": 96.08,
+          "contrast": 55.92,
+          "min_dimension": 28,
+          "is_usable": true,
+          "rejection_reason": null
+        },
+        "aligned_crop": "reports/classroom_image_test_results/face_40_aligned.jpg"
+      },
+      {
+        "number": 41,
+        "bbox": {
+          "x": 808,
+          "y": 433,
+          "w": 25,
+          "h": 28
+        },
+        "confidence": 0.692441,
+        "quality": {
+          "overall_score": 0.7638,
+          "sharpness": 3818.83,
+          "brightness": 86.81,
+          "contrast": 70.9,
+          "min_dimension": 25,
+          "is_usable": true,
+          "rejection_reason": null
+        },
+        "aligned_crop": "reports/classroom_image_test_results/face_41_aligned.jpg"
+      },
+      {
+        "number": 42,
+        "bbox": {
+          "x": 1121,
+          "y": 412,
+          "w": 19,
+          "h": 23
+        },
+        "confidence": 0.52859,
+        "quality": {
+          "overall_score": 0.45,
+          "sharpness": 2549.55,
+          "brightness": 100.74,
+          "contrast": 57.85,
+          "min_dimension": 19,
+          "is_usable": false,
+          "rejection_reason": "Face resolution too small (19px < 24px)"
+        },
+        "aligned_crop": "reports/classroom_image_test_results/face_42_aligned.jpg"
+      },
+      {
+        "number": 43,
+        "bbox": {
+          "x": 1066,
+          "y": 403,
+          "w": 14,
+          "h": 19
+        },
+        "confidence": 0.4948,
+        "quality": {
+          "overall_score": 0.45,
+          "sharpness": 7823.46,
+          "brightness": 134.59,
+          "contrast": 65.49,
+          "min_dimension": 14,
+          "is_usable": false,
+          "rejection_reason": "Face resolution too small (14px < 24px)"
+        },
+        "aligned_crop": "reports/classroom_image_test_results/face_43_aligned.jpg"
+      },
+      {
+        "number": 44,
+        "bbox": {
+          "x": 1194,
+          "y": 666,
+          "w": 10,
+          "h": 13
+        },
+        "confidence": 0.470725,
+        "quality": {
+          "overall_score": 0.45,
+          "sharpness": 1352.09,
+          "brightness": 40.02,
+          "contrast": 20.86,
+          "min_dimension": 10,
+          "is_usable": false,
+          "rejection_reason": "Face resolution too small (10px < 24px)"
+        },
+        "aligned_crop": "reports/classroom_image_test_results/face_44_aligned.jpg"
+      }
+    ]
+  },
+  "recognition": [
+    {
+      "detection_id": "73fb0cb7-5dd6-4ee1-92c2-4027fae66225",
+      "status": "unknown",
+      "top_candidate": "Diya Nair",
+      "top_similarity": 0.34708401560783386,
+      "second_candidate": "Kiara Joshi",
+      "second_similarity": 0.2531074583530426,
+      "similarity_gap": 0.09397655725479126,
+      "rejection_reason": "Best similarity 0.3471 < acceptance threshold 0.38"
+    },
+    {
+      "detection_id": "ae2fd141-460c-4e36-9981-eb08fd9b3a08",
+      "status": "low_quality",
+      "top_candidate": null,
+      "top_similarity": null,
+      "second_candidate": null,
+      "second_similarity": null,
+      "similarity_gap": 0.0,
+      "rejection_reason": "Face was flagged as low quality or embedding unavailable"
+    },
+    {
+      "detection_id": "f425a722-dce4-4713-9fc3-5e2d565d2b92",
+      "status": "unknown",
+      "top_candidate": "Reyansh Gupta",
+      "top_similarity": 0.3300389349460602,
+      "second_candidate": "Navya Menon",
+      "second_similarity": 0.31443333625793457,
+      "similarity_gap": 0.01560559868812561,
+      "rejection_reason": "Best similarity 0.3300 < acceptance threshold 0.38"
+    },
+    {
+      "detection_id": "a7484378-fd74-41c7-b16c-d0560a11cde1",
+      "status": "low_quality",
+      "top_candidate": null,
+      "top_similarity": null,
+      "second_candidate": null,
+      "second_similarity": null,
+      "similarity_gap": 0.0,
+      "rejection_reason": "Face was flagged as low quality or embedding unavailable"
+    },
+    {
+      "detection_id": "3556a212-e7a1-4174-a39a-b7d797382052",
+      "status": "low_quality",
+      "top_candidate": null,
+      "top_similarity": null,
+      "second_candidate": null,
+      "second_similarity": null,
+      "similarity_gap": 0.0,
+      "rejection_reason": "Face was flagged as low quality or embedding unavailable"
+    },
+    {
+      "detection_id": "41c4dd53-87fa-463e-b180-04c588dabbb6",
+      "status": "unknown",
+      "top_candidate": "Ananya Patel",
+      "top_similarity": 0.31450051069259644,
+      "second_candidate": "Reyansh Gupta",
+      "second_similarity": 0.22509679198265076,
+      "similarity_gap": 0.08940371870994568,
+      "rejection_reason": "Best similarity 0.3145 < acceptance threshold 0.38"
+    },
+    {
+      "detection_id": "fc791639-132f-4368-a5ba-7824d22301d2",
+      "status": "unknown",
+      "top_candidate": "Ananya Patel",
+      "top_similarity": 0.29258033633232117,
+      "second_candidate": "Vivaan Reddy",
+      "second_similarity": 0.1616109013557434,
+      "similarity_gap": 0.13096943497657776,
+      "rejection_reason": "Best similarity 0.2926 < acceptance threshold 0.38"
+    },
+    {
+      "detection_id": "34d1041c-8fa3-4343-a137-3c2458981b4b",
+      "status": "low_quality",
+      "top_candidate": null,
+      "top_similarity": null,
+      "second_candidate": null,
+      "second_similarity": null,
+      "similarity_gap": 0.0,
+      "rejection_reason": "Face was flagged as low quality or embedding unavailable"
+    },
+    {
+      "detection_id": "4aac3403-baf7-4a6d-8e90-b991de26bd47",
+      "status": "matched_pending_review",
+      "top_candidate": "Veer Bose",
+      "top_similarity": 0.5973173975944519,
+      "second_candidate": "Reyansh Gupta",
+      "second_similarity": 0.3278672993183136,
+      "similarity_gap": 0.2694500982761383,
+      "rejection_reason": null
+    },
+    {
+      "detection_id": "a221b71c-0d16-4b5b-81b4-24e87d3c5edb",
+      "status": "matched_pending_review",
+      "top_candidate": "Vivaan Reddy",
+      "top_similarity": 0.5083239078521729,
+      "second_candidate": "Kiara Joshi",
+      "second_similarity": 0.32811757922172546,
+      "similarity_gap": 0.1802063286304474,
+      "rejection_reason": null
+    },
+    {
+      "detection_id": "7c8c6c0c-3753-4c74-98f0-1a1082b58eec",
+      "status": "unknown",
+      "top_candidate": "Ananya Patel",
+      "top_similarity": 0.296001672744751,
+      "second_candidate": "Navya Menon",
+      "second_similarity": 0.20755693316459656,
+      "similarity_gap": 0.08844473958015442,
+      "rejection_reason": "Best similarity 0.2960 < acceptance threshold 0.38"
+    },
+    {
+      "detection_id": "44555f5d-d1c1-4e97-ab14-e765880bac6c",
+      "status": "unknown",
+      "top_candidate": "Ananya Patel",
+      "top_similarity": 0.3703997731208801,
+      "second_candidate": "Navya Menon",
+      "second_similarity": 0.18953071534633636,
+      "similarity_gap": 0.18086905777454376,
+      "rejection_reason": "Best similarity 0.3704 < acceptance threshold 0.38"
+    },
+    {
+      "detection_id": "309017ef-e63a-458c-bb47-4d6091db57b7",
+      "status": "matched_pending_review",
+      "top_candidate": "Reyansh Gupta",
+      "top_similarity": 0.42346346378326416,
+      "second_candidate": "Ananya Patel",
+      "second_similarity": 0.3117252588272095,
+      "similarity_gap": 0.11173820495605469,
+      "rejection_reason": null
+    },
+    {
+      "detection_id": "2073158e-ed21-4805-915a-fd85ea19c5a9",
+      "status": "unknown",
+      "top_candidate": "Kiara Joshi",
+      "top_similarity": 0.2742360532283783,
+      "second_candidate": "Ananya Patel",
+      "second_similarity": 0.21986165642738342,
+      "similarity_gap": 0.05437439680099487,
+      "rejection_reason": "Best similarity 0.2742 < acceptance threshold 0.38"
+    },
+    {
+      "detection_id": "f399093e-f281-404d-bc7c-7bdd5ca5850d",
+      "status": "unknown",
+      "top_candidate": "Ishaan Verma",
+      "top_similarity": 0.30610960721969604,
+      "second_candidate": "Kiara Joshi",
+      "second_similarity": 0.2709316611289978,
+      "similarity_gap": 0.03517794609069824,
+      "rejection_reason": "Best similarity 0.3061 < acceptance threshold 0.38"
+    },
+    {
+      "detection_id": "959a1ef4-4e3b-49ed-a039-82c7b899c295",
+      "status": "low_quality",
+      "top_candidate": null,
+      "top_similarity": null,
+      "second_candidate": null,
+      "second_similarity": null,
+      "similarity_gap": 0.0,
+      "rejection_reason": "Face was flagged as low quality or embedding unavailable"
+    },
+    {
+      "detection_id": "798017f7-07c7-472d-96d9-772ed00a43ea",
+      "status": "low_quality",
+      "top_candidate": null,
+      "top_similarity": null,
+      "second_candidate": null,
+      "second_similarity": null,
+      "similarity_gap": 0.0,
+      "rejection_reason": "Face was flagged as low quality or embedding unavailable"
+    },
+    {
+      "detection_id": "e4f75429-60e6-46e5-93e0-f8af975c1f8f",
+      "status": "unknown",
+      "top_candidate": "Reyansh Gupta",
+      "top_similarity": 0.3085012137889862,
+      "second_candidate": "Veer Bose",
+      "second_similarity": 0.3083571791648865,
+      "similarity_gap": 0.00014403462409973145,
+      "rejection_reason": "Best similarity 0.3085 < acceptance threshold 0.38"
+    },
+    {
+      "detection_id": "4e0a177a-60f1-4a6e-84c3-c2ec837bf71f",
+      "status": "low_quality",
+      "top_candidate": null,
+      "top_similarity": null,
+      "second_candidate": null,
+      "second_similarity": null,
+      "similarity_gap": 0.0,
+      "rejection_reason": "Face was flagged as low quality or embedding unavailable"
+    },
+    {
+      "detection_id": "dcce5ba3-6a9a-4fd1-ab59-4e6f8788ff77",
+      "status": "unknown",
+      "top_candidate": "Ananya Patel",
+      "top_similarity": 0.21953177452087402,
+      "second_candidate": "Kiara Joshi",
+      "second_similarity": 0.20310653746128082,
+      "similarity_gap": 0.0164252370595932,
+      "rejection_reason": "Best similarity 0.2195 < acceptance threshold 0.38"
+    },
+    {
+      "detection_id": "ecc54858-042b-469a-bfa5-b2c5681ed39d",
+      "status": "matched_pending_review",
+      "top_candidate": "Diya Nair",
+      "top_similarity": 0.39243263006210327,
+      "second_candidate": "Kiara Joshi",
+      "second_similarity": 0.26660609245300293,
+      "similarity_gap": 0.12582653760910034,
+      "rejection_reason": null
+    },
+    {
+      "detection_id": "f48f796b-7f19-447b-bc00-86cfb4a5c191",
+      "status": "unknown",
+      "top_candidate": "Diya Nair",
+      "top_similarity": 0.2767726182937622,
+      "second_candidate": "Ishaan Verma",
+      "second_similarity": 0.2611854076385498,
+      "similarity_gap": 0.015587210655212402,
+      "rejection_reason": "Best similarity 0.2768 < acceptance threshold 0.38"
+    },
+    {
+      "detection_id": "60c26256-b22f-4d93-9531-94746c6a08a7",
+      "status": "unknown",
+      "top_candidate": "Ishaan Verma",
+      "top_similarity": 0.2728722095489502,
+      "second_candidate": "Ananya Patel",
+      "second_similarity": 0.1986268311738968,
+      "similarity_gap": 0.0742453783750534,
+      "rejection_reason": "Best similarity 0.2729 < acceptance threshold 0.38"
+    },
+    {
+      "detection_id": "fd4478d5-4413-4876-a4b1-18b64df427f8",
+      "status": "unknown",
+      "top_candidate": "Reyansh Gupta",
+      "top_similarity": 0.3397844433784485,
+      "second_candidate": "Kiara Joshi",
+      "second_similarity": 0.31893137097358704,
+      "similarity_gap": 0.02085307240486145,
+      "rejection_reason": "Best similarity 0.3398 < acceptance threshold 0.38"
+    },
+    {
+      "detection_id": "1761e299-5033-46b8-a580-a471a39863a5",
+      "status": "low_quality",
+      "top_candidate": null,
+      "top_similarity": null,
+      "second_candidate": null,
+      "second_similarity": null,
+      "similarity_gap": 0.0,
+      "rejection_reason": "Face was flagged as low quality or embedding unavailable"
+    },
+    {
+      "detection_id": "d47f8384-26fe-4140-8b85-4ee39df6b04e",
+      "status": "unknown",
+      "top_candidate": "Ananya Patel",
+      "top_similarity": 0.3029576539993286,
+      "second_candidate": "Navya Menon",
+      "second_similarity": 0.24824604392051697,
+      "similarity_gap": 0.054711610078811646,
+      "rejection_reason": "Best similarity 0.3030 < acceptance threshold 0.38"
+    },
+    {
+      "detection_id": "247f4635-fe37-40d8-9934-5fd9199b703b",
+      "status": "low_quality",
+      "top_candidate": null,
+      "top_similarity": null,
+      "second_candidate": null,
+      "second_similarity": null,
+      "similarity_gap": 0.0,
+      "rejection_reason": "Face was flagged as low quality or embedding unavailable"
+    },
+    {
+      "detection_id": "580bf1a1-9c59-4b62-a625-e852ad15819b",
+      "status": "unknown",
+      "top_candidate": "Kiara Joshi",
+      "top_similarity": 0.31798630952835083,
+      "second_candidate": "Ananya Patel",
+      "second_similarity": 0.30700013041496277,
+      "similarity_gap": 0.010986179113388062,
+      "rejection_reason": "Best similarity 0.3180 < acceptance threshold 0.38"
+    },
+    {
+      "detection_id": "d676ad73-aafd-4808-a1fa-bb495d2a72dc",
+      "status": "low_quality",
+      "top_candidate": null,
+      "top_similarity": null,
+      "second_candidate": null,
+      "second_similarity": null,
+      "similarity_gap": 0.0,
+      "rejection_reason": "Face was flagged as low quality or embedding unavailable"
+    },
+    {
+      "detection_id": "ff58c1bb-62bb-48ed-bc51-3857663b6f42",
+      "status": "low_quality",
+      "top_candidate": null,
+      "top_similarity": null,
+      "second_candidate": null,
+      "second_similarity": null,
+      "similarity_gap": 0.0,
+      "rejection_reason": "Face was flagged as low quality or embedding unavailable"
+    },
+    {
+      "detection_id": "160defaa-b3f5-471c-852b-bb77ecc37c51",
+      "status": "low_quality",
+      "top_candidate": null,
+      "top_similarity": null,
+      "second_candidate": null,
+      "second_similarity": null,
+      "similarity_gap": 0.0,
+      "rejection_reason": "Face was flagged as low quality or embedding unavailable"
+    },
+    {
+      "detection_id": "103fb7ea-766e-49e6-bafe-2a7ce3468df1",
+      "status": "unknown",
+      "top_candidate": "Ananya Patel",
+      "top_similarity": 0.22919444739818573,
+      "second_candidate": "Vivaan Reddy",
+      "second_similarity": 0.19017021358013153,
+      "similarity_gap": 0.0390242338180542,
+      "rejection_reason": "Best similarity 0.2292 < acceptance threshold 0.38"
+    },
+    {
+      "detection_id": "7c8d9aab-2e7e-4783-8d67-855418410ef0",
+      "status": "low_quality",
+      "top_candidate": null,
+      "top_similarity": null,
+      "second_candidate": null,
+      "second_similarity": null,
+      "similarity_gap": 0.0,
+      "rejection_reason": "Face was flagged as low quality or embedding unavailable"
+    },
+    {
+      "detection_id": "0b038d6b-3ef9-46a2-8939-4f741e00f47d",
+      "status": "low_quality",
+      "top_candidate": null,
+      "top_similarity": null,
+      "second_candidate": null,
+      "second_similarity": null,
+      "similarity_gap": 0.0,
+      "rejection_reason": "Face was flagged as low quality or embedding unavailable"
+    },
+    {
+      "detection_id": "e6dfae02-a06f-478e-b9f9-6ca5ee100b2e",
+      "status": "unknown",
+      "top_candidate": "Reyansh Gupta",
+      "top_similarity": 0.22970649600028992,
+      "second_candidate": "Ananya Patel",
+      "second_similarity": 0.1858021467924118,
+      "similarity_gap": 0.04390434920787811,
+      "rejection_reason": "Best similarity 0.2297 < acceptance threshold 0.38"
+    },
+    {
+      "detection_id": "7ae298a2-8b44-4195-82ba-ceeaa69a6922",
+      "status": "low_quality",
+      "top_candidate": null,
+      "top_similarity": null,
+      "second_candidate": null,
+      "second_similarity": null,
+      "similarity_gap": 0.0,
+      "rejection_reason": "Face was flagged as low quality or embedding unavailable"
+    },
+    {
+      "detection_id": "dd4d6c6f-411f-4d5e-aa45-0f9d9cf51604",
+      "status": "low_quality",
+      "top_candidate": null,
+      "top_similarity": null,
+      "second_candidate": null,
+      "second_similarity": null,
+      "similarity_gap": 0.0,
+      "rejection_reason": "Face was flagged as low quality or embedding unavailable"
+    },
+    {
+      "detection_id": "db145f97-dda2-48e6-8553-a0c7f3f2de33",
+      "status": "low_quality",
+      "top_candidate": null,
+      "top_similarity": null,
+      "second_candidate": null,
+      "second_similarity": null,
+      "similarity_gap": 0.0,
+      "rejection_reason": "Face was flagged as low quality or embedding unavailable"
+    },
+    {
+      "detection_id": "98ef44fa-15a9-4802-b553-6703f864d0a5",
+      "status": "low_quality",
+      "top_candidate": null,
+      "top_similarity": null,
+      "second_candidate": null,
+      "second_similarity": null,
+      "similarity_gap": 0.0,
+      "rejection_reason": "Face was flagged as low quality or embedding unavailable"
+    },
+    {
+      "detection_id": "53d41859-97df-4c91-ab2b-5b8e24c5ba71",
+      "status": "unknown",
+      "top_candidate": "Reyansh Gupta",
+      "top_similarity": 0.2038000226020813,
+      "second_candidate": "Ananya Patel",
+      "second_similarity": 0.13125482201576233,
+      "similarity_gap": 0.07254520058631897,
+      "rejection_reason": "Best similarity 0.2038 < acceptance threshold 0.38"
+    },
+    {
+      "detection_id": "3496860b-1da9-40e0-a86e-61fa5ae9ff07",
+      "status": "unknown",
+      "top_candidate": "Kiara Joshi",
+      "top_similarity": 0.28933680057525635,
+      "second_candidate": "Ananya Patel",
+      "second_similarity": 0.20310905575752258,
+      "similarity_gap": 0.08622774481773376,
+      "rejection_reason": "Best similarity 0.2893 < acceptance threshold 0.38"
+    },
+    {
+      "detection_id": "9a1d676f-4e7b-492f-b3da-d35441c8977e",
+      "status": "low_quality",
+      "top_candidate": null,
+      "top_similarity": null,
+      "second_candidate": null,
+      "second_similarity": null,
+      "similarity_gap": 0.0,
+      "rejection_reason": "Face was flagged as low quality or embedding unavailable"
+    },
+    {
+      "detection_id": "c3b89ab2-54af-49a7-be4b-a8d8680c0028",
+      "status": "low_quality",
+      "top_candidate": null,
+      "top_similarity": null,
+      "second_candidate": null,
+      "second_similarity": null,
+      "similarity_gap": 0.0,
+      "rejection_reason": "Face was flagged as low quality or embedding unavailable"
+    },
+    {
+      "detection_id": "98c4feb7-7800-4e27-8f66-a4ed9f84d307",
+      "status": "low_quality",
+      "top_candidate": null,
+      "top_similarity": null,
+      "second_candidate": null,
+      "second_similarity": null,
+      "similarity_gap": 0.0,
+      "rejection_reason": "Face was flagged as low quality or embedding unavailable"
+    }
+  ],
+  "audit": {
+    "audit_started_at": "2026-11-22T17:35:09+05:30",
+    "audit_completed_at": "2026-11-22T12:24:12.581589+00:00",
+    "baseline": "Measured before defect fixes",
+    "post_fix": "Measured after API threshold and small-face filtering fixes"
+  },
+  "baseline_comparison": {
+    "full_image_detection_count": 44,
+    "raw_tiled_detection_count": 44,
+    "baseline_unique_candidate_count": 44,
+    "baseline_usable_faces": 23,
+    "baseline_low_quality_faces": 21,
+    "baseline_embeddings_extracted": 23,
+    "baseline_recognition_status_counts": {
+      "matched_pending_review": 4,
+      "unknown": 19,
+      "low_quality": 21
+    },
+    "post_fix_unique_candidate_count": 23,
+    "post_fix_usable_faces": 23,
+    "post_fix_low_quality_faces": 0,
+    "post_fix_embeddings_extracted": 23,
+    "post_fix_recognition_status_counts": {
+      "matched_pending_review": 4,
+      "unknown": 19,
+      "low_quality": 0
+    }
+  },
+  "post_fix_measurements": {
+    "integrated_processing_total_ms": 183.45,
+    "detection_threshold": 0.65,
+    "minimum_face_min_dimension_px": 24,
+    "tiled_detection": true,
+    "embedding_count": 23
+  },
+  "attendance_verification": {
+    "database": "Separate SQLite database /tmp/classsnap_real_photo_verification.db",
+    "official_database_modified": false,
+    "exact_photo_api_upload": "PASS",
+    "session_status_after_processing": "review_required",
+    "post_fix_detection_count": 23,
+    "matched_pending_review": 4,
+    "unknown": 19,
+    "repeated_upload": "PASS - duplicate upload rejected with HTTP 422",
+    "corrupt_upload": "PASS - HTTP 422",
+    "blank_image": "PASS - processed as review_required with zero proposals",
+    "review_and_confirm": "PASS - all detections reviewed absent in isolated DB, confirmation succeeded",
+    "csv_export": "PASS - HTTP 200, 975 bytes",
+    "xlsx_export": "PASS - HTTP 200, 5258 bytes"
+  },
+  "scenario_matrix": [
+    {
+      "scenario": "Valid classroom photograph",
+      "status": "PASS",
+      "evidence": "Exact JPEG processed through API; 23 post-fix proposals in isolated DB"
+    },
+    {
+      "scenario": "No detected faces",
+      "status": "PASS",
+      "evidence": "Synthetic blank image processed; review_required with zero detections"
+    },
+    {
+      "scenario": "Unknown people",
+      "status": "PASS",
+      "evidence": "19 detections classified unknown under existing threshold"
+    },
+    {
+      "scenario": "Duplicate face detections",
+      "status": "PASS",
+      "evidence": "Repeated identical upload rejected while review session already active"
+    },
+    {
+      "scenario": "Low-quality face detections",
+      "status": "PASS",
+      "evidence": "Sub-24 px candidates filtered; 21 baseline candidates removed"
+    },
+    {
+      "scenario": "Missing student enrollment data",
+      "status": "BLOCKED",
+      "evidence": "Synthetic missing-template behavior exists, but no separately controlled blocked case was created"
+    },
+    {
+      "scenario": "Repeated upload",
+      "status": "PASS",
+      "evidence": "Second upload returned HTTP 422 and did not create duplicate proposals"
+    },
+    {
+      "scenario": "Invalid/corrupted image",
+      "status": "PASS",
+      "evidence": "Corrupt JPEG bytes returned HTTP 422"
+    },
+    {
+      "scenario": "Database interruption",
+      "status": "NOT TESTED",
+      "evidence": "No injected database outage was executed"
+    },
+    {
+      "scenario": "Failed model loading",
+      "status": "NOT TESTED",
+      "evidence": "Model files loaded successfully; startup failure injection was not executed"
+    }
+  ],
+  "defects": [
+    {
+      "id": "DEF-001",
+      "severity": "HIGH",
+      "status": "FIXED",
+      "title": "API used 0.40 instead of configured 0.65 detector threshold",
+      "evidence": "Processing endpoint hardcoded 0.40; exact baseline returned 44 candidates",
+      "fix": "Changed endpoint to 0.65"
+    },
+    {
+      "id": "DEF-002",
+      "severity": "MEDIUM",
+      "status": "FIXED",
+      "title": "Sub-resolution detections entered proposal pipeline",
+      "evidence": "21 of 44 baseline detections were below 24 px min dimension",
+      "fix": "Filter candidates below quality_assessor.min_face_size and rerun NMS in CVEngine"
+    },
+    {
+      "id": "DEF-003",
+      "severity": "MEDIUM",
+      "status": "FIXED",
+      "title": "No EXIF orientation correction",
+      "evidence": "CV2 ingestion did not normalize orientation",
+      "fix": "Added Pillow EXIF transpose for path and byte ingestion, with alpha-preserving PNG fallback"
+    },
+    {
+      "id": "DEF-004",
+      "severity": "MEDIUM",
+      "status": "FIXED",
+      "title": "Post-fix PNG alpha became black",
+      "evidence": "Initial Pillow conversion lost transparent alpha",
+      "fix": "Preserve RGBA and composite through existing white-background helper"
+    },
+    {
+      "id": "DEF-005",
+      "severity": "MEDIUM",
+      "status": "OPEN",
+      "title": "44 to 23 candidate reduction does not establish 23 real faces",
+      "evidence": "No manually verified ground-truth face annotations",
+      "fix": "Human annotation and benchmark against labeled ground truth"
+    },
+    {
+      "id": "DEF-006",
+      "severity": "MEDIUM",
+      "status": "OPEN",
+      "title": "Recognition proposals are unverified",
+      "evidence": "Only roster similarity data exists; no independently verified identities",
+      "fix": "Controlled labeled matching dataset and calibrated threshold validation"
+    },
+    {
+      "id": "DEF-007",
+      "severity": "LOW",
+      "status": "OPEN",
+      "title": "CSV/XLS export only available after confirmation",
+      "evidence": "Isolated unconfirmed report returned HTTP 422",
+      "fix": "Document intended behavior or offer explicit unconfirmed preview if product requires it"
+    }
+  ],
+  "automated_tests": {
+    "baseline": "83 passed, 2 skipped",
+    "post_fix": "84 passed, 2 skipped",
+    "frontend_build": "PASS",
+    "exact_api_upload": "PASS",
+    "isolated_attendance_confirm_export": "PASS"
+  },
+  "deployment_readiness": {
+    "assessment": "CONTROLLED PILOT WITH LIMITATIONS",
+    "reasons": [
+      "Exact JPEG decoded and processed",
+      "No ground-truth names or face locations",
+      "Recognition not independently identity-verified",
+      "Official attendance records not modified",
+      "Corrections and exports passed in isolated DB"
+    ]
+  }
+}

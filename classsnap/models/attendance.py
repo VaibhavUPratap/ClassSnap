@@ -31,6 +31,8 @@ class AttendanceSession(Base):
     status: Mapped[str] = mapped_column(String(32), nullable=False, default="draft", index=True)
     created_by: Mapped[str] = mapped_column(String(100), nullable=False, default="system")
     class_at: Mapped[Optional[datetime]] = mapped_column(nullable=True, index=True)
+    # When set, only active students of this class form the session roster.
+    class_section: Mapped[Optional[str]] = mapped_column(String(16), nullable=True, index=True)
     confirmed_at: Mapped[Optional[datetime]] = mapped_column(nullable=True)
     confirmed_by: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
 

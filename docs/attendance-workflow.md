@@ -40,6 +40,17 @@ draft ──/process──▶ processing ──/image──▶ review_required �
    reviewer can retry. Confirming an already-confirmed session returns it unchanged
    (idempotent). `UNIQUE(session_id, student_id)` is enforced on both proposed and final tables.
 
+## Classes / sections
+
+Students have an optional `class_section` (e.g. `A`, `B`, `C`; up to 16 letters, digits or hyphens,
+stored upper-case). A session created with `class_section` uses only that class's active students
+as its roster and as the face-matching gallery, so students of other classes are never proposed,
+assigned or confirmed in it. A session without a class covers all active students.
+
+- `GET /students?class_section=B` filters the roster; `GET /students/classes` lists classes in use.
+- `POST /attendance/sessions` accepts `class_section`; history, reports and exports include it.
+- Roster CSV import reads an optional `class_section` (or `class`) column.
+
 ## API changes
 
 | Method & path | Change |
@@ -59,3 +70,11 @@ draft ──/process──▶ processing ──/image──▶ review_required �
   `confirmed_at`, `reviewed_by`, `corrected_at`, `corrected_by`, `correction_reason`.
   Existing rows are backfilled from `present` and the session's `confirmed_at`.
 - `attendance_sessions.confirmed_by`, `proposed_matches.candidate_student_id`.
+- `students.class_section`, `attendance_sessions.class_section`.
+
+## Enrollment on large photos
+
+YuNet misses faces that fill a full-resolution phone portrait and fires on clothing patterns
+instead. Photos whose longest side exceeds 1280 px are scanned at 1280, 960 and 640 px first; the
+chosen box and landmarks are mapped back, and quality, alignment and embedding run on the
+full-resolution image. Smaller photos use the original single pass.

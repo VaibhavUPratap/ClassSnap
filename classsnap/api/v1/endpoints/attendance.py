@@ -46,6 +46,7 @@ def _session_response(session) -> AttendanceSessionResponse:
         status=session.status,
         created_by=session.created_by,
         class_at=class_at,
+        class_section=session.class_section,
         confirmed_at=confirmed_at,
         confirmed_by=session.confirmed_by,
     )
@@ -205,7 +206,9 @@ def _session_detail_response(session, db: Session) -> AttendanceSessionDetailRes
 @router.post("", response_model=AttendanceSessionResponse, status_code=status.HTTP_201_CREATED)
 def create_session(payload: AttendanceSessionCreate, db: Session = Depends(get_db)):
     return _session_response(
-        AttendanceService.create_session(db, payload.name, payload.actor, payload.class_at)
+        AttendanceService.create_session(
+            db, payload.name, payload.actor, payload.class_at, payload.class_section
+        )
     )
 
 

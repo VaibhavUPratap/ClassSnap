@@ -1,8 +1,22 @@
-import { StrictMode, useEffect, useMemo, useState } from "react";
+import { StrictMode, useEffect, useMemo, useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
 import "./styles.css";
 
 const API = "/api/v1";
+
+function classesOf(students) {
+  return [...new Set(students.map((student) => student.class_section).filter(Boolean))].sort();
+}
+
+function ClassOptions({ students }) {
+  return (
+    <datalist id="class-options">
+      {[...new Set(["A", "B", "C", "D", ...classesOf(students)])].sort().map((value) => (
+        <option key={value} value={value} />
+      ))}
+    </datalist>
+  );
+}
 const USN_PATTERN = /^[A-Z]{3}[0-9]{2}[A-Z]{2}[0-9]{4}$/;
 
 async function request(path, options = {}) {
@@ -102,106 +116,329 @@ function Button({ children, variant = "primary", className = "", ...props }) {
   return <button className={`button ${variant} ${className}`} {...props}>{children}</button>;
 }
 
-function Sidebar({ page, setPage, open, setOpen }) {
-  const links = [
-    { id: "overview", icon: <IconHome />, label: "Overview" },
-    { id: "students", icon: <IconUsers />, label: "Students" },
-    { id: "enroll", icon: <IconUserPlus />, label: "Enroll Face" },
-    { id: "attendance", icon: <IconCheckCircle />, label: "Take Attendance" },
-    { id: "reports", icon: <IconBarChart />, label: "Reports" },
-  ];
-
+function BrandMark() {
   return (
-    <aside className={`sidebar ${open ? "open" : ""}`}>
-      <a className="brand" href="#overview" onClick={() => setPage("overview")}>
-        <div className="brand-mark">C</div>
-        <div>
-          <strong>ClassSnap</strong>
-          <small>AI Attendance Intelligence</small>
+    <svg viewBox="0 0 32 32" fill="none" aria-hidden="true">
+      <path d="M4 11V7a3 3 0 0 1 3-3h4M21 4h4a3 3 0 0 1 3 3v4M28 21v4a3 3 0 0 1-3 3h-4M11 28H7a3 3 0 0 1-3-3v-4" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" />
+      <circle cx="16" cy="16" r="4.2" fill="currentColor" />
+    </svg>
+  );
+}
+
+function IconMenu(props) {
+  return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" {...props}><line x1="4" y1="7" x2="20" y2="7"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="17" x2="14" y2="17"/></svg>;
+}
+
+function IconArrowRight(props) {
+  return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><line x1="5" y1="12" x2="19" y2="12"/><polyline points="13 6 19 12 13 18"/></svg>;
+}
+
+const NAV_SECTIONS = [
+  { title: "Workspace", links: [{ id: "overview", icon: <IconHome />, label: "Overview" }] },
+  {
+    title: "Roster",
+    links: [
+      { id: "students", icon: <IconUsers />, label: "Students" },
+      { id: "enroll", icon: <IconUserPlus />, label: "Enroll faces" },
+    ],
+  },
+  {
+    title: "Attendance",
+    links: [
+      { id: "attendance", icon: <IconCheckCircle />, label: "Take attendance" },
+      { id: "reports", icon: <IconBarChart />, label: "History" },
+    ],
+  },
+];
+
+function Sidebar({ page, setPage, open, setOpen }) {
+  return (
+    <>
+      <div className={`sidebar-scrim ${open ? "open" : ""}`} onClick={() => setOpen(false)} aria-hidden="true" />
+      <aside className={`sidebar ${open ? "open" : ""}`}>
+        <a className="brand" href="#overview" onClick={() => { setPage("overview"); setOpen(false); }}>
+          <span className="brand-mark"><BrandMark /></span>
+          <span className="brand-text">
+            <strong>ClassSnap</strong>
+            <small>Attendance, verified</small>
+          </span>
+        </a>
+        <nav className="nav" aria-label="Main navigation">
+          {NAV_SECTIONS.map((section) => (
+            <div className="nav-section" key={section.title}>
+              <span className="nav-section-title">{section.title}</span>
+              {section.links.map((link) => (
+                <a
+                  className={`nav-link ${page === link.id ? "active" : ""}`}
+                  href={`#${link.id}`}
+                  key={link.id}
+                  aria-current={page === link.id ? "page" : undefined}
+                  onClick={() => { setPage(link.id); setOpen(false); }}
+                >
+                  {link.icon}
+                  <span>{link.label}</span>
+                </a>
+              ))}
+            </div>
+          ))}
+        </nav>
+        <div className="sidebar-note">
+          <IconShield />
+          <div>
+            <strong>Privacy by design</strong>
+            <p>Classroom photos are processed in memory. Only face templates and crops are stored.</p>
+          </div>
         </div>
-      </a>
-      <nav className="nav" aria-label="Main navigation">
-        {links.map((link) => (
-          <a
-            className={`nav-link ${page === link.id ? "active" : ""}`}
-            href={`#${link.id}`}
-            key={link.id}
-            onClick={() => { setPage(link.id); setOpen(false); }}
-          >
-            {link.icon}
-            <span>{link.label}</span>
-          </a>
-        ))}
-      </nav>
-      <div className="sidebar-note">
-        <IconShield />
-        <div>
-          <strong>Privacy Safeguards Active</strong>
-          <p>Biometrics are normalized and stored locally. Raw photos are securely purged.</p>
-        </div>
-      </div>
-    </aside>
+      </aside>
+    </>
   );
 }
 
 function PageHeading({ eyebrow, title, children, description }) {
   return (
-    <div className="page-heading">
+    <header className="page-heading">
       <div className="page-heading-info">
-        {eyebrow && <span className="eyebrow"><IconSparkles style={{ width: 13, height: 13 }} /> {eyebrow}</span>}
+        {eyebrow && <span className="eyebrow">{eyebrow}</span>}
         <h1>{title}</h1>
         {description && <p className="lead">{description}</p>}
       </div>
       {children && <div className="page-heading-actions">{children}</div>}
-    </div>
+    </header>
   );
 }
 
-function Stat({ icon, tone, label, value }) {
+const reducedMotion = () =>
+  typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+
+/* Counts a leading number up to its value ("95%" counts 0→95, then keeps the "%"). */
+function CountUp({ value, duration = 750 }) {
+  const match = typeof value === "number" ? [null, String(value), ""] : String(value ?? "").match(/^(\d+)(.*)$/);
+  const target = match ? Number(match[1]) : null;
+  const suffix = match ? match[2] : "";
+  const shown = useRef(0);
+  const [n, setN] = useState(0);
+
+  useEffect(() => {
+    if (target == null) return undefined;
+    if (reducedMotion()) {
+      shown.current = target;
+      setN(target);
+      return undefined;
+    }
+    const from = shown.current;
+    const start = performance.now();
+    let frame;
+    const tick = (now) => {
+      const t = Math.min(1, (now - start) / duration);
+      const eased = 1 - Math.pow(1 - t, 3);
+      const next = Math.round(from + (target - from) * eased);
+      shown.current = next;
+      setN(next);
+      if (t < 1) frame = requestAnimationFrame(tick);
+    };
+    frame = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(frame);
+  }, [target, duration]);
+
+  if (target == null) return value;
+  return `${n}${suffix}`;
+}
+
+function Stat({ icon, tone, label, value, foot }) {
   return (
-    <article className="stat-card">
-      <div className={`stat-icon ${tone}`}>{icon}</div>
-      <div>
+    <article className={`stat-card ${tone || ""}`}>
+      <div className="stat-top">
         <span className="stat-label">{label}</span>
-        <strong>{value}</strong>
+        <span className={`stat-icon ${tone || ""}`}>{icon}</span>
       </div>
+      <strong className="stat-value"><CountUp value={value} /></strong>
+      {foot && <span className="stat-foot">{foot}</span>}
     </article>
   );
 }
 
+function Meter({ value, total, tone = "" }) {
+  const pct = total ? Math.round((value / total) * 100) : 0;
+  return (
+    <span className={`meter ${tone}`} role="img" aria-label={`${value} of ${total}`}>
+      <i style={{ width: `${pct}%` }} />
+    </span>
+  );
+}
+
+function greeting() {
+  const hour = new Date().getHours();
+  if (hour < 12) return "Good morning";
+  if (hour < 17) return "Good afternoon";
+  return "Good evening";
+}
+
 function Overview({ students, setPage }) {
-  const enrolled = students.reduce((total, student) => total + (student.enrolled_templates_count || 0), 0);
+  const [history, setHistory] = useState(null);
+
+  useEffect(() => {
+    request("/attendance/sessions").then(setHistory).catch(() => setHistory([]));
+  }, []);
+
+  const enrolled = students.filter((s) => (s.enrolled_templates_count || 0) > 0);
+  const notEnrolled = students.filter((s) => !(s.enrolled_templates_count > 0));
+  const classes = classesOf(students);
+  const unassigned = students.filter((s) => !s.class_section).length;
+  const sessions = history || [];
+  const confirmed = sessions.filter((s) => s.status === "confirmed");
+  const pending = sessions.filter((s) => s.status !== "confirmed");
+  const marks = confirmed.reduce((sum, s) => sum + s.present_count, 0);
+  const possible = confirmed.reduce((sum, s) => sum + s.total_registered, 0);
+  const rate = possible ? Math.round((marks / possible) * 100) : null;
+
+  const classRows = [
+    ...classes.map((value) => ({ label: `Class ${value}`, key: value, members: students.filter((s) => s.class_section === value) })),
+    ...(unassigned ? [{ label: "No class", key: "-", members: students.filter((s) => !s.class_section) }] : []),
+  ];
+
+  const resume = (sessionId) => {
+    storageSet(ACTIVE_SESSION_KEY, sessionId);
+    setPage("attendance");
+  };
+
+  const today = new Date().toLocaleDateString(undefined, { weekday: "long", day: "numeric", month: "long" });
 
   return (
     <section className="page-section">
-      <PageHeading
-        eyebrow="Dashboard"
-        title="Classroom Intelligence"
-        description="Monitor active enrollment, verify attendance in real-time, and inspect automated session reports."
-      >
+      <PageHeading eyebrow={today} title={greeting()} description="Here is where your roster and attendance stand today.">
+        <Button variant="secondary" onClick={() => setPage("students")}>
+          <IconUserPlus /> Add student
+        </Button>
         <Button onClick={() => setPage("attendance")}>
-          <IconCheckCircle /> Take Attendance
+          <IconCheckCircle /> Take attendance
         </Button>
       </PageHeading>
 
-      <div className="stat-grid">
-        <Stat icon={<IconUsers />} tone="blue" label="Active Students" value={students.length} />
-        <Stat icon={<IconCheckCircle />} tone="green" label="Enrolled Biometrics" value={enrolled} />
-        <Stat icon={<IconClock />} tone="amber" label="System Status" value="Online & Ready" />
+      <div className="stat-grid four">
+        <Stat icon={<IconUsers />} tone="blue" label="Active students" value={students.length} foot={classes.length ? `Across ${classes.length} ${classes.length === 1 ? "class" : "classes"}` : "No classes assigned yet"} />
+        <Stat
+          icon={<IconShield />}
+          tone="green"
+          label="Face coverage"
+          value={students.length ? `${Math.round((enrolled.length / students.length) * 100)}%` : "—"}
+          foot={notEnrolled.length ? `${notEnrolled.length} without a reference photo` : "Every student enrolled"}
+        />
+        <Stat icon={<IconCheckCircle />} tone="ink" label="Confirmed sessions" value={history ? confirmed.length : "…"} foot={pending.length ? `${pending.length} awaiting confirmation` : "Nothing pending"} />
+        <Stat icon={<IconBarChart />} tone="amber" label="Attendance rate" value={rate == null ? "—" : `${rate}%`} foot={possible ? `${marks} of ${possible} marks present` : "Confirm a session to see this"} />
       </div>
 
-      <div className="welcome-card">
-        <div>
-          <span className="eyebrow">Quick Workflow</span>
-          <h2>Seamless AI Attendance in 3 Steps</h2>
-          <p>
-            Maintain an active student roster with consented reference portraits. Snap or upload a classroom group photograph to detect all visible faces and review high-confidence identity proposals.
-          </p>
+      <div className="overview-grid">
+        <div className="content-card">
+          <div className="card-toolbar">
+            <div>
+              <h2>Recent sessions</h2>
+              <p className="muted">The latest classes, newest first.</p>
+            </div>
+            <Button variant="ghost" className="sm" onClick={() => setPage("reports")}>
+              View all
+            </Button>
+          </div>
+          {!history ? (
+            <div className="skeleton-list" aria-label="Loading sessions">
+              <span className="skeleton" /><span className="skeleton" /><span className="skeleton" />
+            </div>
+          ) : !sessions.length ? (
+            <div className="empty-state">
+              <p>No attendance taken yet.</p>
+              <Button className="sm" onClick={() => setPage("attendance")}>Start the first session</Button>
+            </div>
+          ) : (
+            <ul className="session-list">
+              {sessions.slice(0, 6).map((item) => {
+                const date = new Date(item.class_date);
+                const done = item.status === "confirmed";
+                return (
+                  <li key={item.session_id} className="session-item">
+                    <span className="date-chip">
+                      <b>{date.getDate()}</b>
+                      <small>{date.toLocaleDateString(undefined, { month: "short" })}</small>
+                    </span>
+                    <span className="session-item-main">
+                      <strong>{item.session_name}</strong>
+                      <small>
+                        {item.class_section ? `Class ${item.class_section}` : "All classes"},{" "}
+                        {date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                      </small>
+                    </span>
+                    {done ? (
+                      <span className="session-item-stat">
+                        <span className="mono">{item.present_count}/{item.total_registered}</span>
+                        <Meter value={item.present_count} total={item.total_registered} tone="green" />
+                      </span>
+                    ) : (
+                      <Button variant="secondary" className="sm" onClick={() => resume(item.session_id)}>
+                        Resume
+                      </Button>
+                    )}
+                  </li>
+                );
+              })}
+            </ul>
+          )}
         </div>
-        <div className="workflow-steps">
-          <span><b>1</b> Add student record</span>
-          <span><b>2</b> Enroll reference face</span>
-          <span><b>3</b> Review & confirm class</span>
+
+        <div className="overview-side">
+          <div className="content-card">
+            <div className="card-toolbar">
+              <div>
+                <h2>Classes</h2>
+                <p className="muted">Students and face coverage per class.</p>
+              </div>
+            </div>
+            {classRows.length ? (
+              <ul className="class-list">
+                {classRows.map((row) => {
+                  const withFace = row.members.filter((s) => s.enrolled_templates_count > 0).length;
+                  return (
+                    <li key={row.key}>
+                      <span className={`class-badge ${row.key === "-" ? "none" : ""}`}>{row.key === "-" ? "—" : row.key}</span>
+                      <span className="class-list-main">
+                        <strong>{row.label}</strong>
+                        <Meter value={withFace} total={row.members.length} />
+                      </span>
+                      <span className="mono muted">{withFace}/{row.members.length}</span>
+                    </li>
+                  );
+                })}
+              </ul>
+            ) : (
+              <div className="empty-state">No students yet.</div>
+            )}
+          </div>
+
+          {(notEnrolled.length > 0 || unassigned > 0 || pending.length > 0) && (
+            <div className="content-card attention-card">
+              <h2>Needs attention</h2>
+              <ul className="attention-list">
+                {pending.length > 0 && (
+                  <li>
+                    <span className="dot amber" />
+                    <span>{pending.length} {pending.length === 1 ? "session is" : "sessions are"} waiting for review</span>
+                    <button className="link-button" onClick={() => resume(pending[0].session_id)}>Resume</button>
+                  </li>
+                )}
+                {notEnrolled.length > 0 && (
+                  <li>
+                    <span className="dot red" />
+                    <span>{notEnrolled.length} {notEnrolled.length === 1 ? "student has" : "students have"} no face reference</span>
+                    <button className="link-button" onClick={() => setPage("enroll", notEnrolled[0].id)}>Enroll</button>
+                  </li>
+                )}
+                {unassigned > 0 && (
+                  <li>
+                    <span className="dot gray" />
+                    <span>{unassigned} {unassigned === 1 ? "student is" : "students are"} not in a class</span>
+                    <button className="link-button" onClick={() => setPage("students")}>Assign</button>
+                  </li>
+                )}
+              </ul>
+            </div>
+          )}
         </div>
       </div>
     </section>
@@ -235,6 +472,7 @@ function EditStudentModal({ student, onClose, refresh, notify }) {
     email: student.email || "",
     has_consent: student.has_consent || false,
     consent_notes: student.consent_notes || "",
+    class_section: student.class_section || "",
     is_active: student.is_active !== false,
   });
   const [saving, setSaving] = useState(false);
@@ -267,6 +505,7 @@ function EditStudentModal({ student, onClose, refresh, notify }) {
           email: form.email.trim() || null,
           has_consent: form.has_consent,
           consent_notes: form.consent_notes.trim() || null,
+          class_section: form.class_section.trim().toUpperCase() || null,
           is_active: form.is_active,
         }),
       });
@@ -301,9 +540,9 @@ function EditStudentModal({ student, onClose, refresh, notify }) {
           <div className="modal-header-left">
             <span className="avatar" style={{ width: 40, height: 40, fontSize: 15, flexShrink: 0 }}>{initials}</span>
             <div>
-              <span className="eyebrow">Edit Record</span>
+              <span className="eyebrow">Edit student</span>
               <h2 style={{ margin: 0 }}>{student.first_name} {student.last_name}</h2>
-              <small style={{ color: "var(--text-muted)", fontFamily: "var(--font-mono)" }}>{student.student_id}</small>
+              <small className="student-id">{student.student_id}</small>
             </div>
           </div>
           <button className="modal-close" onClick={onClose} aria-label="Close">
@@ -314,7 +553,7 @@ function EditStudentModal({ student, onClose, refresh, notify }) {
         <form className="modal-body" onSubmit={save} noValidate>
           <div className="form-grid" style={{ gridTemplateColumns: "1fr 1fr", gap: "14px 20px" }}>
             <label className="full" style={{ gridColumn: "1 / -1" }}>
-              Student USN
+              USN
               <input
                 name="student_id"
                 value={form.student_id}
@@ -325,7 +564,7 @@ function EditStudentModal({ student, onClose, refresh, notify }) {
               />
             </label>
             <label>
-              First Name
+              First name
               <input
                 name="first_name"
                 value={form.first_name}
@@ -336,7 +575,7 @@ function EditStudentModal({ student, onClose, refresh, notify }) {
               />
             </label>
             <label>
-              Last Name
+              Last name
               <input
                 name="last_name"
                 value={form.last_name}
@@ -346,13 +585,24 @@ function EditStudentModal({ student, onClose, refresh, notify }) {
               />
             </label>
             <label className="full" style={{ gridColumn: "1 / -1" }}>
-              Email Address
+              Email
               <input
                 name="email"
                 type="email"
                 value={form.email}
                 onChange={update}
                 placeholder="jane.doe@university.edu"
+              />
+            </label>
+            <label className="full" style={{ gridColumn: "1 / -1" }}>
+              Class
+              <input
+                name="class_section"
+                value={form.class_section}
+                onChange={update}
+                placeholder="A"
+                maxLength="16"
+                list="class-options"
               />
             </label>
             <label className="checkbox-label full" style={{ gridColumn: "1 / -1" }}>
@@ -365,7 +615,7 @@ function EditStudentModal({ student, onClose, refresh, notify }) {
               <span>Biometric consent verified and recorded on file</span>
             </label>
             <label className="full" style={{ gridColumn: "1 / -1" }}>
-              Consent Notes
+              Consent notes
               <input
                 name="consent_notes"
                 value={form.consent_notes}
@@ -390,7 +640,7 @@ function EditStudentModal({ student, onClose, refresh, notify }) {
             </Button>
             <Button type="submit" disabled={saving}>
               <IconSave style={{ width: 15, height: 15 }} />
-              {saving ? "Saving…" : "Save Changes"}
+              {saving ? "Saving…" : "Save changes"}
             </Button>
           </div>
         </form>
@@ -437,6 +687,7 @@ function StudentRow({ student, setPage, refresh, notify }) {
           </div>
         </td>
         <td><span className="student-id">{student.student_id}</span></td>
+        <td>{student.class_section ? <span className="pill blue">{student.class_section}</span> : <span className="muted">—</span>}</td>
         <td>
           <span className={`pill ${student.has_consent ? "green" : "gray"}`}>
             {student.has_consent ? "Recorded" : "Required"}
@@ -453,7 +704,7 @@ function StudentRow({ student, setPage, refresh, notify }) {
             </span>
             <span>
               <strong>{templates.length} {templates.length === 1 ? "template" : "templates"}</strong>
-              <small>{templates.length ? "Inspect biometric crops" : "Face not enrolled"}</small>
+              <small>{templates.length ? "View face references" : "Face not enrolled"}</small>
             </span>
             <span className="chevron">
               {expanded ? <IconChevronUp style={{ width: 14, height: 14 }} /> : <IconChevronDown style={{ width: 14, height: 14 }} />}
@@ -474,18 +725,17 @@ function StudentRow({ student, setPage, refresh, notify }) {
       </tr>
       {expanded && (
         <tr className="template-detail-row">
-          <td colSpan="5">
+          <td colSpan="6">
             <div className="template-detail">
               <div className="template-detail-heading">
                 <div>
-                  <span className="eyebrow">Stored Face References</span>
-                  <h3>{templates.length ? `${templates.length} Active Biometric ${templates.length === 1 ? "Template" : "Templates"}` : "No face templates"}</h3>
+                                    <h3>{templates.length ? `${templates.length} face ${templates.length === 1 ? "reference" : "references"}` : "No face references"}</h3>
                   <p className="muted">
-                    Preview shows the normalized alignment face crop used by the recognition neural network.
+                    Each preview is the aligned face crop the recognizer compares against.
                   </p>
                 </div>
                 <Button variant="secondary" className="sm" onClick={() => setPage("enroll", student.id)}>
-                  <IconUserPlus style={{ width: 14, height: 14 }} /> Add Reference
+                  <IconUserPlus style={{ width: 14, height: 14 }} /> Add reference
                 </Button>
               </div>
               {templates.length ? (
@@ -497,20 +747,20 @@ function StudentRow({ student, setPage, refresh, notify }) {
                         alt={`Face reference ${index + 1} for ${student.first_name} ${student.last_name}`}
                       />
                       <div className="template-card-top">
-                        <span className="template-number">REFERENCE #{index + 1}</span>
+                        <span className="template-number">Reference {index + 1}</span>
                         {template.is_primary && <span className="pill blue">Primary</span>}
                       </div>
                       <dl>
                         <div>
-                          <dt>Recognition Model</dt>
-                          <dd>{template.model_name} · {template.model_version}</dd>
+                          <dt>Model</dt>
+                          <dd>{template.model_name} {template.model_version}</dd>
                         </div>
                         <div>
-                          <dt>Feature Embedding</dt>
-                          <dd>{template.embedding_dim}D Unit Vector</dd>
+                          <dt>Embedding</dt>
+                          <dd>{template.embedding_dim} dimensions</dd>
                         </div>
                         <div>
-                          <dt>Quality Confidence</dt>
+                          <dt>Quality</dt>
                           <dd>
                             {Math.round(template.quality_score * 100)}%
                             <span className="quality-bar">
@@ -519,8 +769,8 @@ function StudentRow({ student, setPage, refresh, notify }) {
                           </dd>
                         </div>
                         <div>
-                          <dt>Timestamp</dt>
-                          <dd>{new Date(template.created_at).toLocaleDateString()} {new Date(template.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</dd>
+                          <dt>Added</dt>
+                          <dd>{new Date(template.created_at).toLocaleDateString()}</dd>
                         </div>
                       </dl>
                       <Button
@@ -537,14 +787,14 @@ function StudentRow({ student, setPage, refresh, notify }) {
                           }
                         }}
                       >
-                        <IconTrash style={{ width: 13, height: 13 }} /> Delete Face Crop
+                        <IconTrash style={{ width: 13, height: 13 }} /> Delete reference
                       </Button>
                     </article>
                   ))}
                 </div>
               ) : (
                 <div className="template-empty">
-                  No biometric references linked to this student. Click "Add Reference" to enroll a face portrait.
+                  No face references yet. Add a portrait so this student can be recognized in class photos.
                 </div>
               )}
             </div>
@@ -566,6 +816,8 @@ function Field({ label, className = "", ...props }) {
 
 function Students({ students, refresh, setPage, notify }) {
   const [search, setSearch] = useState("");
+  const [classFilter, setClassFilter] = useState("");
+  const classes = classesOf(students);
   const [form, setForm] = useState({
     first_name: "",
     last_name: "",
@@ -573,19 +825,23 @@ function Students({ students, refresh, setPage, notify }) {
     email: "",
     has_consent: false,
     consent_notes: "",
+    class_section: "",
   });
 
   const filteredStudents = useMemo(() => {
-    if (!search.trim()) return students;
+    const inClass = classFilter
+      ? students.filter((s) => (classFilter === "-" ? !s.class_section : s.class_section === classFilter))
+      : students;
+    if (!search.trim()) return inClass;
     const q = search.toLowerCase();
-    return students.filter(
+    return inClass.filter(
       (s) =>
         s.first_name.toLowerCase().includes(q) ||
         s.last_name.toLowerCase().includes(q) ||
         s.student_id.toLowerCase().includes(q) ||
         (s.email && s.email.toLowerCase().includes(q))
     );
-  }, [students, search]);
+  }, [students, search, classFilter]);
 
   const update = (event) => {
     const value =
@@ -611,7 +867,7 @@ function Students({ students, refresh, setPage, notify }) {
       await request("/students?actor=web-admin", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
+        body: JSON.stringify({ ...form, class_section: form.class_section.trim().toUpperCase() || null }),
       });
       setForm({
         first_name: "",
@@ -620,6 +876,7 @@ function Students({ students, refresh, setPage, notify }) {
         email: "",
         has_consent: false,
         consent_notes: "",
+        class_section: "",
       });
       await refresh();
       notify("Student added to the roster");
@@ -631,29 +888,33 @@ function Students({ students, refresh, setPage, notify }) {
   return (
     <section className="page-section">
       <PageHeading
-        eyebrow="Roster Management"
-        title="Student Directory"
-        description="Maintain authenticated classroom enrollment and consent status."
+        title="Students"
+        description="Everyone on the roster, their class, consent and face references."
       >
         <Button onClick={() => setPage("enroll")}>
-          <IconUserPlus /> Enroll Face
+          <IconUserPlus /> Enroll a face
         </Button>
       </PageHeading>
 
       <div className="content-card">
         <div className="card-toolbar">
           <div>
-            <h2>Active Students ({filteredStudents.length})</h2>
-            <p className="muted">Search by name, student ID, or registered email.</p>
+            <h2>Active students ({filteredStudents.length})</h2>
+            <p className="muted">Search by name, USN or email.</p>
           </div>
-          <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+          <div>
             <input
               type="text"
               className="search-input"
-              placeholder="Search students..."
+              placeholder="Search students"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
+            <select value={classFilter} onChange={(e) => setClassFilter(e.target.value)} aria-label="Filter by class">
+              <option value="">All classes</option>
+              {classes.map((value) => <option key={value} value={value}>Class {value}</option>)}
+              <option value="-">No class</option>
+            </select>
             <Button variant="secondary" onClick={refresh}>
               <IconRefresh /> Refresh
             </Button>
@@ -665,17 +926,18 @@ function Students({ students, refresh, setPage, notify }) {
             <thead>
               <tr>
                 <th>Student</th>
-                <th>Student USN</th>
-                <th>Consent Status</th>
-                <th>Face Biometrics</th>
+                <th>USN</th>
+                <th>Class</th>
+                <th>Consent</th>
+                <th>Face references</th>
                 <th style={{ textAlign: "right" }}>Actions</th>
               </tr>
             </thead>
             <tbody>
               {!filteredStudents.length ? (
                 <tr>
-                  <td colSpan="5" className="empty-state">
-                    {search ? "No students matching your search query." : "No students in the roster yet. Add your first student below."}
+                  <td colSpan="6" className="empty-state">
+                    {search ? "No students match that search." : "No students yet. Add the first one below."}
                   </td>
                 </tr>
               ) : (
@@ -695,18 +957,17 @@ function Students({ students, refresh, setPage, notify }) {
       </div>
 
       <div className="content-card add-card">
-        <div style={{ maxWidth: 300 }}>
-          <span className="eyebrow">Roster Registry</span>
-          <h2>Register Student</h2>
+        <div>
+          <h2>Add a student</h2>
           <p className="muted">
-            Create an active student record before enrolling face biometrics.
+            Create the record first, then enroll a face so they can be recognized.
           </p>
         </div>
         <form className="form-grid" noValidate onSubmit={submit}>
-          <Field label="First Name" name="first_name" value={form.first_name} onChange={update} placeholder="Jane" required />
-          <Field label="Last Name" name="last_name" value={form.last_name} onChange={update} placeholder="Doe" required />
+          <Field label="First name" name="first_name" value={form.first_name} onChange={update} placeholder="Jane" required />
+          <Field label="Last name" name="last_name" value={form.last_name} onChange={update} placeholder="Doe" required />
           <Field
-            label="USN / Student ID"
+            label="USN"
             name="student_id"
             value={form.student_id}
             onChange={update}
@@ -714,14 +975,16 @@ function Students({ students, refresh, setPage, notify }) {
             maxLength="11"
             required
           />
-          <Field label="Email Address (Optional)" name="email" type="email" value={form.email} onChange={update} placeholder="jane.doe@university.edu" />
+          <Field label="Email (optional)" name="email" type="email" value={form.email} onChange={update} placeholder="jane.doe@university.edu" />
+          <Field label="Class" name="class_section" value={form.class_section} onChange={update} placeholder="A" maxLength="16" list="class-options" />
+          <ClassOptions students={students} />
           <label className="checkbox-label full">
             <input name="has_consent" type="checkbox" checked={form.has_consent} onChange={update} />
             <span>Biometric consent verified and recorded on file</span>
           </label>
-          <Field className="full" label="Consent Notes (Optional)" name="consent_notes" value={form.consent_notes} onChange={update} placeholder="Parent/student consent signed on registration." />
+          <Field className="full" label="Consent notes (optional)" name="consent_notes" value={form.consent_notes} onChange={update} placeholder="Parent/student consent signed on registration." />
           <Button className="full" type="submit">
-            <IconUserPlus /> Register Student
+            <IconUserPlus /> Add student
           </Button>
         </form>
       </div>
@@ -790,26 +1053,25 @@ function Enroll({ students, refresh, notify, preselectedStudentId }) {
   return (
     <section className="page-section">
       <PageHeading
-        eyebrow="Biometric Registry"
-        title="Enroll Student Face"
-        description="Add a high-quality facial reference to ensure accurate attendance matching."
+        title="Enroll a face"
+        description="A clear reference portrait lets ClassSnap recognize this student in classroom photos."
       />
 
       <div className="split-layout">
         <div className="content-card">
-          <h2>Enrollment Form</h2>
+          <h2>Reference photo</h2>
           <p className="muted" style={{ marginBottom: "20px" }}>
-            Select an active student and upload their reference photograph.
+            Pick the student, then choose one portrait of them.
           </p>
 
           <form onSubmit={submit}>
             <label style={{ marginBottom: "16px" }}>
-              Target Student
+              Student
               <select value={studentId} onChange={(e) => setStudentId(e.target.value)} required>
-                <option value="">Select a student from roster</option>
+                <option value="">Choose a student</option>
                 {students.map((student) => (
                   <option value={student.id} key={student.id}>
-                    {student.first_name} {student.last_name} ({student.student_id})
+                    {student.first_name} {student.last_name} ({student.student_id}{student.class_section ? ` · ${student.class_section}` : ""})
                   </option>
                 ))}
               </select>
@@ -821,18 +1083,18 @@ function Enroll({ students, refresh, notify, preselectedStudentId }) {
                   <img
                     src={previewUrl}
                     alt="Preview"
-                    style={{ maxHeight: 160, borderRadius: 8, objectFit: "contain", border: "1px solid var(--border)" }}
+                    style={{ maxHeight: 160, borderRadius: 8, objectFit: "contain", border: "1px solid var(--rule)" }}
                   />
                   <strong>{image?.name}</strong>
-                  <small>{(image.size / 1024).toFixed(1)} KB · Click to choose different image</small>
+                  <small>{(image.size / 1024).toFixed(1)} KB · click to choose another</small>
                 </div>
               ) : (
                 <>
                   <div className="upload-icon">
                     <IconUpload />
                   </div>
-                  <strong>Upload Reference Portrait</strong>
-                  <small>JPG or PNG with clean face visibility · up to 10 MB</small>
+                  <strong>Choose a portrait</strong>
+                  <small>JPG or PNG, face clearly visible, up to 10 MB</small>
                 </>
               )}
               <input
@@ -855,7 +1117,7 @@ function Enroll({ students, refresh, notify, preselectedStudentId }) {
             </label>
 
             <Field
-              label="Consent Notes (Optional)"
+              label="Consent notes (optional)"
               value={consentNotes}
               onChange={(e) => setConsentNotes(e.target.value)}
               placeholder="Signed waiver form ID or reference code"
@@ -863,7 +1125,7 @@ function Enroll({ students, refresh, notify, preselectedStudentId }) {
             />
 
             <Button className="full" type="submit" disabled={submitting || !image || !studentId}>
-              <IconSparkles /> {submitting ? "Processing & Normalizing..." : "Enroll Face Template"}
+              <IconUserPlus /> {submitting ? "Enrolling…" : "Enroll face"}
             </Button>
           </form>
         </div>
@@ -872,12 +1134,12 @@ function Enroll({ students, refresh, notify, preselectedStudentId }) {
           <div className="info-icon">
             <IconShield />
           </div>
-          <h2>Best Enrollment Practices</h2>
+          <h2>What makes a good reference</h2>
           <ul>
-            <li><strong>Single Face Portrait:</strong> Ensure only one individual appears in the photo.</li>
-            <li><strong>Even Lighting:</strong> Avoid heavy backlighting, lens flare, or dark silhouettes.</li>
-            <li><strong>Frontal Orientation:</strong> Position eyes and mouth facing the camera directly.</li>
-            <li><strong>Clean Backgrounds:</strong> Background-removed cutouts are automatically composited cleanly.</li>
+            <li><strong>One face.</strong> Only the student should be in the frame.</li>
+            <li><strong>Even light.</strong> Avoid windows behind them and harsh shadows.</li>
+            <li><strong>Facing the camera.</strong> Both eyes and the mouth should be visible.</li>
+            <li><strong>Several angles help.</strong> Add a second reference for students who are often missed.</li>
           </ul>
         </div>
       </div>
@@ -930,9 +1192,9 @@ const METHOD_LABEL = {
 
 const REJECTED_FACE = new Set(["reviewed_absent", "corrected_absent"]);
 
-function StatusPill({ status }) {
+function StatusPill({ status, className = "" }) {
   const meta = STATUS_META[status] || { label: status, tone: "gray" };
-  return <span className={`pill ${meta.tone}`}>{meta.label}</span>;
+  return <span className={`pill ${meta.tone} ${className}`}>{meta.label}</span>;
 }
 
 function formatDateTime(value) {
@@ -974,7 +1236,7 @@ function AttendanceSummary({ summary, confirmed }) {
     <div className="summary-strip">
       {items.map(([label, value, tone]) => (
         <div className={`summary-item ${tone}`} key={label}>
-          <strong>{value ?? 0}</strong>
+          <strong><CountUp value={value ?? 0} /></strong>
           <span>{label}</span>
         </div>
       ))}
@@ -994,7 +1256,7 @@ function AnnotatedImage({ src, detections, attendance }) {
     return (
       <div className="annotated-empty">
         The classroom photo is not stored on the server for privacy. Face crops are shown below;
-        re-select the photo in step 02 of a new session to see the annotated view.
+        re-select the photo in step 2 of a new session to see the annotated view.
       </div>
     );
   }
@@ -1002,7 +1264,7 @@ function AnnotatedImage({ src, detections, attendance }) {
   return (
     <div className="annotated-image">
       <img src={src} alt="Classroom with detected faces outlined" onLoad={(e) => setNatural({ w: e.target.naturalWidth, h: e.target.naturalHeight })} />
-      {detections.map((detection) => {
+      {detections.map((detection, index) => {
         const box = detection.bbox;
         const width = box?.image_width || natural?.w;
         const height = box?.image_height || natural?.h;
@@ -1024,6 +1286,7 @@ function AnnotatedImage({ src, detections, attendance }) {
             key={detection.detection_id}
             className={`face-box ${tone}`}
             style={{
+              "--i": index,
               left: `${(box.x / width) * 100}%`,
               top: `${(box.y / height) * 100}%`,
               width: `${(box.w / width) * 100}%`,
@@ -1039,6 +1302,11 @@ function AnnotatedImage({ src, detections, attendance }) {
 }
 
 function RosterRow({ entry, confirmed, busy, onSet, onVerify, onReject }) {
+  const previous = useRef(entry.status);
+  const changed = previous.current !== entry.status;
+  useEffect(() => {
+    previous.current = entry.status;
+  }, [entry.status]);
   const isPresent = entry.status === "present";
   const action = confirmed ? null : entry.status === "needs_review" && entry.detection_id ? (
     <>
@@ -1061,7 +1329,7 @@ function RosterRow({ entry, confirmed, busy, onSet, onVerify, onReject }) {
   );
 
   return (
-    <tr className={`roster-row status-${entry.status}`}>
+    <tr className={`roster-row status-${entry.status} ${changed ? "changed" : ""}`}>
       <td className="check-cell">
         <input
           type="checkbox"
@@ -1085,7 +1353,7 @@ function RosterRow({ entry, confirmed, busy, onSet, onVerify, onReject }) {
         </div>
       </td>
       <td>
-        <StatusPill status={entry.status} />
+        <StatusPill key={entry.status} status={entry.status} className={changed ? "changed" : ""} />
         {entry.manually_set && !confirmed && <span className="edited-flag">edited</span>}
       </td>
       <td>
@@ -1120,7 +1388,7 @@ function UnknownFace({ detection, students, busy, onAssign, onReject }) {
           <option value="">Choose student…</option>
           {students.map((student) => (
             <option key={student.id} value={student.id}>
-              {student.first_name} {student.last_name} ({student.student_id})
+              {student.first_name} {student.last_name} ({student.student_id}{student.class_section ? ` · ${student.class_section}` : ""})
             </option>
           ))}
         </select>
@@ -1141,6 +1409,8 @@ function Attendance({ students, notify }) {
   const [name, setName] = useState("");
   const [classDate, setClassDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [classTime, setClassTime] = useState(() => new Date().toTimeString().slice(0, 5));
+  const [classSection, setClassSection] = useState("");
+  const classes = classesOf(students);
   const [reviewer, setReviewer] = useState(() => storageGet(REVIEWER_KEY) || "");
   const [session, setSession] = useState(null);
   const [image, setImage] = useState(null);
@@ -1177,6 +1447,7 @@ function Attendance({ students, notify }) {
         body: JSON.stringify({
           name,
           class_at: `${classDate}T${classTime}:00`,
+          class_section: classSection || null,
           actor: reviewer.trim() || "web-reviewer",
         }),
       });
@@ -1298,28 +1569,29 @@ function Attendance({ students, notify }) {
   return (
     <section className="page-section">
       <PageHeading
-        eyebrow="Verification Workflow"
-        title="Classroom Attendance Session"
-        description="Upload a classroom photo. Recognized students are marked present automatically; review the rest and confirm to save."
+        title="Take attendance"
+        description="Upload one classroom photo. Recognized students are marked present; you review the rest and confirm."
       >
         <span className="badge privacy">
-          <IconShield /> In-Memory CV Processing
+          <IconShield /> Photos are processed in memory
         </span>
       </PageHeading>
 
       <div className="attendance-layout">
         <div className="content-card">
           <div className="card-heading">
-            <span className="step">01</span>
+            <span className="step">1</span>
             <div>
               <h2>Session</h2>
-              <p className="muted">Subject, schedule, and reviewer.</p>
+              <p className="muted">What, when, and who is reviewing.</p>
             </div>
           </div>
           {session ? (
             <div className="session-info">
               <strong>{session.name}</strong>
-              <small>Class: {formatDateTime(session.class_at)}</small>
+              <small>
+                {session.class_section ? `Class ${session.class_section}` : "All classes"} · {formatDateTime(session.class_at)}
+              </small>
               <span>
                 <StatusPill status={confirmed ? "present" : "needs_review"} />{" "}
                 <span className="muted">{confirmed ? "Confirmed" : session.status === "processing" ? "Waiting for photo" : "In review"}</span>
@@ -1331,23 +1603,34 @@ function Attendance({ students, notify }) {
           ) : (
             <form onSubmit={createSession}>
               <Field
-                label="Subject / Session Title"
+                label="Subject"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder="CS 401 · Computer Vision · Lecture 4"
+                placeholder="CS401 Computer Vision, lecture 4"
                 required
               />
+              <label>
+                Class
+                <select value={classSection} onChange={(e) => setClassSection(e.target.value)}>
+                  <option value="">All active students</option>
+                  {classes.map((value) => (
+                    <option key={value} value={value}>
+                      Class {value} ({students.filter((student) => student.class_section === value).length} students)
+                    </option>
+                  ))}
+                </select>
+              </label>
               <div className="date-time-fields">
-                <Field label="Class Date" type="date" value={classDate} onChange={(e) => setClassDate(e.target.value)} required />
-                <Field label="Class Time" type="time" value={classTime} onChange={(e) => setClassTime(e.target.value)} required />
+                <Field label="Date" type="date" value={classDate} onChange={(e) => setClassDate(e.target.value)} required />
+                <Field label="Time" type="time" value={classTime} onChange={(e) => setClassTime(e.target.value)} required />
               </div>
               <Button className="full" type="submit">
-                <IconSparkles /> Initialize Session
+                <IconCheck /> Start session
               </Button>
             </form>
           )}
           <Field
-            label="Reviewer (recorded on confirmation)"
+            label="Reviewer, recorded when you confirm"
             value={reviewer}
             onChange={(e) => updateReviewer(e.target.value)}
             placeholder="e.g. Prof. Rao"
@@ -1357,31 +1640,31 @@ function Attendance({ students, notify }) {
 
         <div className="content-card">
           <div className="card-heading">
-            <span className="step">02</span>
+            <span className="step">2</span>
             <div>
-              <h2>Classroom Snapshot</h2>
-              <p className="muted">One photo per session. Faces are detected, matched, and proposed.</p>
+              <h2>Classroom photo</h2>
+              <p className="muted">One photo per session. Faces are found and matched to the roster.</p>
             </div>
           </div>
           <form onSubmit={processImage}>
-            <label className="upload-zone compact" htmlFor="classroom-image">
+            <label className={`upload-zone compact ${processing ? "scanning" : ""}`} htmlFor="classroom-image">
               {imagePreview ? (
                 <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6 }}>
                   <img src={imagePreview} alt="Classroom thumbnail" style={{ maxHeight: 110, borderRadius: 6, objectFit: "cover" }} />
                   <strong>{image?.name}</strong>
-                  <small>{(image.size / (1024 * 1024)).toFixed(2)} MB · Ready to scan</small>
+                  <small>{(image.size / (1024 * 1024)).toFixed(2)} MB, ready to process</small>
                 </div>
               ) : (
                 <>
                   <div className="upload-icon"><IconUpload /></div>
-                  <strong>Choose Classroom Photo</strong>
-                  <small>JPG / PNG with visible classroom attendees</small>
+                  <strong>Choose a classroom photo</strong>
+                  <small>JPG or PNG with students’ faces visible</small>
                 </>
               )}
               <input id="classroom-image" type="file" accept="image/*" onChange={handleImageSelect} disabled={session?.status !== "processing"} />
             </label>
             <Button className="full" type="submit" disabled={session?.status !== "processing" || !image || processing}>
-              <IconSparkles /> {processing ? "Detecting Faces & Matching..." : inReview ? "Photo Already Processed" : "Process Classroom Image"}
+              {processing ? <span className="spinner" aria-hidden="true" /> : <IconUpload />} {processing ? "Detecting and matching faces…" : inReview ? "Photo already processed" : "Process classroom photo"}
             </Button>
           </form>
         </div>
@@ -1391,8 +1674,11 @@ function Attendance({ students, notify }) {
         <div className="content-card review-card">
           <div className="card-toolbar">
             <div>
-              <span className="eyebrow">Step 03 · {confirmed ? "Saved Attendance" : "Review Proposed Attendance"}</span>
-              <h2>{session.name}</h2>
+              <span className="eyebrow">{confirmed ? "Saved attendance" : "Step 3: review and confirm"}</span>
+              <h2 className="review-title">
+                {session.name}
+                {confirmed && <span className="stamp"><IconCheck /> Confirmed</span>}
+              </h2>
               <p className="muted">
                 {confirmed
                   ? `Confirmed by ${session.confirmed_by || "—"} on ${formatDateTime(session.confirmed_at)}. Loaded from the database.`
@@ -1427,7 +1713,7 @@ function Attendance({ students, notify }) {
                   <UnknownFace
                     key={detection.detection_id}
                     detection={detection}
-                    students={students}
+                    students={session.class_section ? students.filter((student) => student.class_section === session.class_section) : students}
                     busy={busy}
                     onAssign={(face, studentId) => reviewFace(face.detection_id, true, studentId, "Identity assigned by reviewer")}
                     onReject={(face) => reviewFace(face.detection_id, false, null, "Not a registered student")}
@@ -1450,9 +1736,9 @@ function Attendance({ students, notify }) {
               <thead>
                 <tr>
                   <th aria-label="Present" />
-                  <th>Student ID</th>
-                  <th>Student Name</th>
-                  <th>Attendance Status</th>
+                  <th>USN</th>
+                  <th>Student</th>
+                  <th>Status</th>
                   <th>{confirmed ? "Verification" : "Action"}</th>
                 </tr>
               </thead>
@@ -1487,7 +1773,7 @@ function Attendance({ students, notify }) {
                 ) : (
                   <p className="muted">
                     {session.summary.proposed_present} present · {session.summary.proposed_absent} absent
-                    {unresolved > 0 && ` · ${unresolved} unresolved will be saved as UNVERIFIED (not absent)`}
+                    {unresolved > 0 && ` · ${unresolved} unresolved will be saved as unverified, not absent`}
                   </p>
                 )}
                 {confirmError && (
@@ -1504,7 +1790,7 @@ function Attendance({ students, notify }) {
                 onClick={confirm}
                 disabled={confirming || busy || session.confirmation_problems?.length > 0}
               >
-                <IconCheckCircle /> {confirming ? "Saving…" : "CONFIRM ATTENDANCE"}
+                {confirming ? <span className="spinner" aria-hidden="true" /> : <IconCheckCircle />} {confirming ? "Saving…" : "Confirm attendance"}
               </Button>
             </div>
           )}
@@ -1535,6 +1821,7 @@ function SessionHistoryRow({ item, onResume }) {
       <tr>
         <td>{new Date(item.class_date).toLocaleDateString()}</td>
         <td><strong>{item.session_name}</strong></td>
+        <td>{item.class_section ? <span className="pill blue">{item.class_section}</span> : <span className="muted">All</span>}</td>
         <td>{confirmed ? <span className="pill green">Confirmed</span> : <span className="pill amber">{item.status.replace("_", " ")}</span>}</td>
         <td>{confirmed ? item.total_registered : "—"}</td>
         <td>{confirmed ? item.present_count : "—"}</td>
@@ -1561,7 +1848,7 @@ function SessionHistoryRow({ item, onResume }) {
       </tr>
       {open && detail && (
         <tr className="template-detail-row">
-          <td colSpan="9">
+          <td colSpan="10">
             <div className="history-detail">
               {detail.attendance.map((entry) => (
                 <span className="history-chip" key={entry.student_id}>
@@ -1594,14 +1881,14 @@ function StudentHistory({ students, notify }) {
     <div className="content-card">
       <div className="card-toolbar">
         <div>
-          <h2>Student Attendance History</h2>
+          <h2>Student history</h2>
           <p className="muted">Confirmed sessions only.</p>
         </div>
         <select value={studentId} onChange={(e) => setStudentId(e.target.value)} aria-label="Select student">
           <option value="">Select a student…</option>
           {students.map((student) => (
             <option key={student.id} value={student.id}>
-              {student.first_name} {student.last_name} ({student.student_id})
+              {student.first_name} {student.last_name} ({student.student_id}{student.class_section ? ` · ${student.class_section}` : ""})
             </option>
           ))}
         </select>
@@ -1615,7 +1902,7 @@ function StudentHistory({ students, notify }) {
             <div className="summary-item amber"><strong>{history.sessions_unverified}</strong><span>Unverified</span></div>
             <div className="summary-item blue">
               <strong>{history.attendance_rate == null ? "—" : `${Math.round(history.attendance_rate * 100)}%`}</strong>
-              <span>Rate (excl. unverified)</span>
+              <span>Rate, excluding unverified</span>
             </div>
           </div>
           {history.sessions.length ? (
@@ -1688,34 +1975,33 @@ function Reports({ students, notify, setPage }) {
   return (
     <section className="page-section">
       <PageHeading
-        eyebrow="Analytics & Audits"
-        title="Attendance History"
-        description="Every session, its confirmed attendance, and per-student history. Exports read directly from saved records."
+        title="Attendance history"
+        description="Every session and its confirmed register. Exports come straight from saved records."
       />
 
       <div className="content-card report-filters">
         <div>
           <label>
-            From Date
+            From
             <input type="date" value={from} onChange={(e) => setFrom(e.target.value)} />
           </label>
           <label>
-            To Date
+            To
             <input type="date" value={to} onChange={(e) => setTo(e.target.value)} />
           </label>
         </div>
         <Button onClick={load}>
-          <IconRefresh /> Filter Records
+          Apply dates
         </Button>
       </div>
 
       <div className="stat-grid">
-        <Stat icon={<IconBarChart />} tone="blue" label="Confirmed Classes" value={report.total_sessions} />
-        <Stat icon={<IconCheckCircle />} tone="green" label="Attendance Marks" value={report.total_attendance} />
+        <Stat icon={<IconBarChart />} tone="blue" label="Confirmed sessions" value={report.total_sessions} />
+        <Stat icon={<IconCheckCircle />} tone="green" label="Present marks" value={report.total_attendance} />
         <Stat
           icon={<IconClock />}
           tone="amber"
-          label="Attendance Rate"
+          label="Attendance rate"
           value={report.total_possible ? `${Math.round((report.total_attendance / report.total_possible) * 100)}%` : "—"}
         />
       </div>
@@ -1731,7 +2017,7 @@ function Reports({ students, notify, setPage }) {
           <table>
             <thead>
               <tr>
-                <th>Date</th><th>Subject</th><th>Status</th><th>Registered</th><th>Present</th>
+                <th>Date</th><th>Subject</th><th>Class</th><th>Status</th><th>Registered</th><th>Present</th>
                 <th>Absent</th><th>Unverified</th><th>Confirmed</th><th style={{ textAlign: "right" }}>Actions</th>
               </tr>
             </thead>
@@ -1739,7 +2025,7 @@ function Reports({ students, notify, setPage }) {
               {shown.length ? (
                 shown.map((item) => <SessionHistoryRow key={item.session_id} item={item} onResume={resume} />)
               ) : (
-                <tr><td colSpan="9" className="empty-state">No attendance sessions for the selected period.</td></tr>
+                <tr><td colSpan="10" className="empty-state">No attendance sessions for the selected period.</td></tr>
               )}
             </tbody>
           </table>
@@ -1758,9 +2044,14 @@ function App() {
   const [students, setStudents] = useState([]);
   const [toast, setToast] = useState(null);
 
+  const toastTimers = useRef([]);
   const notify = (message, error = false) => {
-    setToast({ message, error });
-    window.setTimeout(() => setToast(null), 3600);
+    toastTimers.current.forEach(window.clearTimeout);
+    setToast({ message, error, id: Date.now(), leaving: false });
+    toastTimers.current = [
+      window.setTimeout(() => setToast((t) => (t ? { ...t, leaving: true } : t)), 3400),
+      window.setTimeout(() => setToast(null), 3700),
+    ];
   };
 
   const refresh = async () => {
@@ -1780,6 +2071,7 @@ function App() {
 
   const changePage = (next, studentId = "") => {
     window.location.hash = next;
+    window.scrollTo({ top: 0, behavior: reducedMotion() ? "auto" : "smooth" });
     setEnrollmentStudentId(studentId);
     setPage(next);
   };
@@ -1801,16 +2093,16 @@ function App() {
       <main className="main-content">
         <header className="mobile-header">
           <a className="brand" href="#overview" onClick={() => changePage("overview")}>
-            <div className="brand-mark">C</div>
+            <span className="brand-mark"><BrandMark /></span>
             <strong>ClassSnap</strong>
           </a>
-          <button className="menu-button" onClick={() => setMenuOpen(!menuOpen)} aria-label="Toggle navigation">
-            ☰
+          <button className="menu-button" onClick={() => setMenuOpen(!menuOpen)} aria-label="Toggle navigation" aria-expanded={menuOpen}>
+            <IconMenu />
           </button>
         </header>
-        {content}
+        <div className="page-transition" key={page}>{content}</div>
         {toast && (
-          <div className={`toast ${toast.error ? "error" : ""}`} role="status">
+          <div key={toast.id} className={`toast ${toast.error ? "error" : ""} ${toast.leaving ? "leaving" : ""}`} role="status">
             {toast.error ? <IconX style={{ width: 16, height: 16 }} /> : <IconCheck style={{ width: 16, height: 16 }} />}
             <span>{toast.message}</span>
           </div>

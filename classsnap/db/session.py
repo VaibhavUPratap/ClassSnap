@@ -97,8 +97,9 @@ def init_db(target_engine: Engine = engine) -> None:
     _add_missing_columns(
         target_engine,
         "attendance_sessions",
-        {"confirmed_by": "VARCHAR(100)"},
+        {"confirmed_by": "VARCHAR(100)", "class_section": "VARCHAR(16)"},
     )
+    _add_missing_columns(target_engine, "students", {"class_section": "VARCHAR(16)"})
     _add_missing_columns(
         target_engine,
         "proposed_matches",

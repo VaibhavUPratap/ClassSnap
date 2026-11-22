@@ -27,6 +27,7 @@ def _student_response(student) -> StudentResponse:
         email=student.email,
         has_consent=student.has_consent,
         consent_notes=student.consent_notes,
+        class_section=student.class_section,
         is_active=student.is_active,
         consent_recorded_at=student.consent_recorded_at,
         created_at=student.created_at,
@@ -59,9 +60,19 @@ def list_students(
     active_only: bool = False,
     limit: int = Query(500, ge=1, le=500),
     offset: int = Query(0, ge=0),
+    class_section: str | None = Query(None, max_length=16),
     db: Session = Depends(get_db),
 ):
-    return [_student_response(student) for student in RosterService.get_students(db, active_only, limit, offset)]
+    return [
+        _student_response(student)
+        for student in RosterService.get_students(db, active_only, limit, offset, class_section)
+    ]
+
+
+@router.get("/classes", response_model=list[str])
+def list_classes(db: Session = Depends(get_db)):
+    """Distinct class/section labels in use by active students."""
+    return RosterService.get_class_sections(db)
 
 
 @router.post("/import", response_model=RosterImportSummary)

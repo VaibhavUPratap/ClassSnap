@@ -16,6 +16,7 @@ from classsnap.logger import get_logger
 from classsnap.models.audit import AuditEvent
 from classsnap.models.student import Student
 from classsnap.schemas.student import (
+    normalize_class_section,
     RosterImportError,
     RosterImportSummary,
     StudentCreate,
@@ -54,6 +55,7 @@ class RosterService:
             has_consent=student_in.has_consent,
             consent_recorded_at=consent_dt,
             consent_notes=student_in.consent_notes,
+            class_section=student_in.class_section,
             is_active=True,
         )
 
@@ -92,13 +94,26 @@ class RosterService:
         active_only: bool = False,
         limit: int = 500,
         offset: int = 0,
+        class_section: Optional[str] = None,
     ) -> List[Student]:
-        """Lists students with optional active filter and pagination."""
+        """Lists students with optional active/class filters and pagination."""
         stmt = select(Student)
         if active_only:
             stmt = stmt.where(Student.is_active == True)
+        if class_section:
+            stmt = stmt.where(Student.class_section == class_section.strip().upper())
         stmt = stmt.order_by(Student.student_id).offset(offset).limit(limit)
         return list(db.execute(stmt).scalars().all())
+
+    @staticmethod
+    def get_class_sections(db: Session) -> List[str]:
+        rows = db.execute(
+            select(Student.class_section)
+            .where(Student.is_active == True, Student.class_section.is_not(None))
+            .distinct()
+            .order_by(Student.class_section)
+        ).scalars()
+        return list(rows)
 
     @staticmethod
     def update_student(
@@ -233,6 +248,14 @@ class RosterService:
 
             email_header = header_map.get("email")
             email = row.get(email_header, "").strip() if email_header else None
+            class_header = header_map.get("class_section") or header_map.get("class")
+            raw_class = row.get(class_header, "").strip() if class_header else ""
+            try:
+                class_section = normalize_class_section(raw_class)
+            except ValueError as error:
+                errors.append(RosterImportError(row_number=row_idx, student_id=raw_id or None, error_message=str(error)))
+                skipped_count += 1
+                continue
 
             consent_header = header_map.get("has_consent")
             has_consent_raw = row.get(consent_header, "false").strip().lower() if consent_header else "false"
@@ -301,6 +324,7 @@ class RosterService:
                 has_consent=has_consent,
                 consent_recorded_at=consent_dt,
                 consent_notes="Imported via roster CSV" if has_consent else None,
+                class_section=class_section,
                 is_active=True,
             )
             students_to_add.append(student)

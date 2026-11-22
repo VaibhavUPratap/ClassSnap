@@ -3,13 +3,23 @@
 from datetime import datetime
 from typing import Literal, Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
+
+from classsnap.schemas.student import normalize_class_section
 
 
 class AttendanceSessionCreate(BaseModel):
     name: str = Field(..., min_length=1, max_length=255)
     class_at: datetime | None = Field(None, description="Date and time when the class took place")
+    class_section: str | None = Field(
+        None, description="Limit the roster to this class/section; omit for all active students"
+    )
     actor: str = Field("system", min_length=1, max_length=100)
+
+    @field_validator("class_section", mode="before")
+    @classmethod
+    def normalize_class(cls, value):
+        return normalize_class_section(value)
 
 
 class AttendanceSessionResponse(BaseModel):
@@ -18,6 +28,7 @@ class AttendanceSessionResponse(BaseModel):
     status: str
     created_by: str
     class_at: Optional[str] = None
+    class_section: Optional[str] = None
     confirmed_at: Optional[str] = None
     confirmed_by: Optional[str] = None
 
@@ -89,6 +100,7 @@ class SessionHistoryItem(BaseModel):
     session_name: str
     status: str
     class_date: datetime
+    class_section: Optional[str] = None
     confirmed_at: Optional[datetime] = None
     confirmed_by: Optional[str] = None
     total_registered: int = 0
@@ -101,6 +113,7 @@ class StudentSessionAttendance(BaseModel):
     session_id: str
     session_name: str
     class_date: datetime
+    class_section: Optional[str] = None
     status: str
     verification_method: Optional[str] = None
     confirmed_at: Optional[datetime] = None
@@ -110,6 +123,7 @@ class StudentAttendanceHistory(BaseModel):
     student_id: str
     student_usn: str
     student_name: str
+    class_section: Optional[str] = None
     total_sessions: int
     sessions_attended: int
     sessions_absent: int

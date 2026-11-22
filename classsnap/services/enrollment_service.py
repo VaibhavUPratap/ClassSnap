@@ -63,56 +63,49 @@ class EnrollmentService:
             for x, y, w, h in boxes
         ]
 
-    def enroll_student_face(
-        self,
-        db: Session,
-        id_or_student_id: str,
-        image_input: Union[str, Path, bytes, np.ndarray],
-        consent_granted: Optional[bool] = None,
-        consent_notes: Optional[str] = None,
-        is_primary: bool = True,
-        actor: str = "system",
-        retain_original_photo: bool = False,
-    ) -> FaceTemplate:
-        """
-        Enrolls a student's face reference:
-        1. Verifies student registration and consent status.
-        2. Validates image contains EXACTLY ONE clear, usable face.
-        3. Extracts aligned 128D unit-normalized embedding using SFace.
-        4. Persists FaceTemplate with model version and quality metrics.
-        5. Purges temporary enrollment photo unless retention is authorized.
-        """
-        # 1. Fetch student
-        stmt = select(Student).where(
-            (Student.id == id_or_student_id) | (Student.student_id == id_or_student_id)
+    # YuNet's anchors target faces far smaller than a full-resolution phone
+    # portrait (faces 1000+ px wide). On such images it misses the real face and
+    # fires on clothing patterns, so large photos are scanned downscaled first.
+    ENROLLMENT_SCAN_SIDES = (1280, 960, 640)
+
+    def _select_enrollment_face(self, image: np.ndarray, student: Student) -> DetectionResult:
+        height, width = image.shape[:2]
+        longest = max(height, width)
+        sides = [side for side in self.ENROLLMENT_SCAN_SIDES if longest > side]
+        attempts = ([None] if longest <= self.ENROLLMENT_SCAN_SIDES[0] else []) + sides
+        if longest > self.ENROLLMENT_SCAN_SIDES[0]:
+            attempts.append(None)  # full resolution as the last resort
+        first_error: Optional[BiometricProcessingError] = None
+        for side in attempts:
+            scale = 1.0 if side is None else side / longest
+            working = image if scale == 1.0 else cv2.resize(
+                image,
+                (max(1, round(width * scale)), max(1, round(height * scale))),
+                interpolation=cv2.INTER_AREA,
+            )
+            try:
+                detection = self._select_single_face(working, student)
+            except BiometricProcessingError as error:
+                first_error = first_error or error
+                continue
+            return detection if scale == 1.0 else self._rescale_detection(detection, 1.0 / scale)
+        raise first_error
+
+    @staticmethod
+    def _rescale_detection(detection: DetectionResult, factor: float) -> DetectionResult:
+        box = detection.bbox
+        detection.bbox = BoundingBox(
+            x=int(round(box.x * factor)),
+            y=int(round(box.y * factor)),
+            w=int(round(box.w * factor)),
+            h=int(round(box.h * factor)),
         )
-        student = db.execute(stmt).scalar_one_or_none()
-        if not student:
-            raise ResourceNotFoundError(resource_type="Student", identifier=id_or_student_id)
+        if detection.landmarks:
+            detection.landmarks = [(x * factor, y * factor) for x, y in detection.landmarks]
+        return detection
 
-        if not student.is_active:
-            raise ValidationError(
-                f"Cannot enroll inactive student: '{student.student_id}' ({student.full_name})"
-            )
-
-        # 2. Verify Consent
-        if consent_granted is not None:
-            student.has_consent = consent_granted
-            if consent_granted:
-                student.consent_recorded_at = datetime.now(timezone.utc)
-                if consent_notes:
-                    student.consent_notes = consent_notes
-
-        if not student.has_consent:
-            raise ValidationError(
-                message=f"Enrollment rejected: Student '{student.student_id}' does not have verified consent on file.",
-                details={"student_id": student.student_id, "has_consent": False},
-            )
-
-        # 3. Load and validate image
-        image = self.cv_engine.load_image(image_input)
-
-        # 4. Detect faces using YuNet, CLAHE-enhanced YuNet, and a Haar fallback.
+    def _select_single_face(self, image: np.ndarray, student: Student) -> DetectionResult:
+        # YuNet, CLAHE-enhanced YuNet, then a Haar fallback.
         detections = self.cv_engine.detector.detect(image, score_threshold=0.40)
         if not any(min(d.bbox.w, d.bbox.h) >= 80 for d in detections):
             lab = cv2.cvtColor(image, cv2.COLOR_BGR2LAB)
@@ -179,7 +172,59 @@ class EnrollmentService:
                     "faces_detected": len(candidate_detections),
                 },
             )
-        face_detection = candidate_detections[0]
+        return candidate_detections[0]
+
+    def enroll_student_face(
+        self,
+        db: Session,
+        id_or_student_id: str,
+        image_input: Union[str, Path, bytes, np.ndarray],
+        consent_granted: Optional[bool] = None,
+        consent_notes: Optional[str] = None,
+        is_primary: bool = True,
+        actor: str = "system",
+        retain_original_photo: bool = False,
+    ) -> FaceTemplate:
+        """
+        Enrolls a student's face reference:
+        1. Verifies student registration and consent status.
+        2. Validates image contains EXACTLY ONE clear, usable face.
+        3. Extracts aligned 128D unit-normalized embedding using SFace.
+        4. Persists FaceTemplate with model version and quality metrics.
+        5. Purges temporary enrollment photo unless retention is authorized.
+        """
+        # 1. Fetch student
+        stmt = select(Student).where(
+            (Student.id == id_or_student_id) | (Student.student_id == id_or_student_id)
+        )
+        student = db.execute(stmt).scalar_one_or_none()
+        if not student:
+            raise ResourceNotFoundError(resource_type="Student", identifier=id_or_student_id)
+
+        if not student.is_active:
+            raise ValidationError(
+                f"Cannot enroll inactive student: '{student.student_id}' ({student.full_name})"
+            )
+
+        # 2. Verify Consent
+        if consent_granted is not None:
+            student.has_consent = consent_granted
+            if consent_granted:
+                student.consent_recorded_at = datetime.now(timezone.utc)
+                if consent_notes:
+                    student.consent_notes = consent_notes
+
+        if not student.has_consent:
+            raise ValidationError(
+                message=f"Enrollment rejected: Student '{student.student_id}' does not have verified consent on file.",
+                details={"student_id": student.student_id, "has_consent": False},
+            )
+
+        # 3. Load and validate image
+        image = self.cv_engine.load_image(image_input)
+
+        # 4. Detect exactly one face, retrying at reduced resolution for large photos.
+        face_detection = self._select_enrollment_face(image, student)
 
         # 5. Assess face quality
         quality = self.cv_engine.quality_assessor.assess_quality(image, face_detection)

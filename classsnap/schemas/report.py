@@ -14,6 +14,7 @@ class AttendanceReportSession(BaseModel):
     session_id: str
     session_name: str
     class_date: datetime
+    class_section: str | None = None
     confirmed_at: datetime | None = None
     confirmed_by: str | None = None
     present_count: int
