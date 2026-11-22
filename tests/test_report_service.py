@@ -26,7 +26,9 @@ def test_confirmed_attendance_exports_csv_and_xlsx(db_session):
 
     csv_content, csv_type, csv_name = ReportService.export_attendance(db_session, session.id, "csv")
     assert b"REP24OR0001" in csv_content
-    assert b",absent" in csv_content
+    # The undetected student was never verified, so it is exported as unverified.
+    assert b",unverified," in csv_content
+    assert b",present," in csv_content
     assert csv_type == "text/csv"
     assert csv_name.endswith(".csv")
 

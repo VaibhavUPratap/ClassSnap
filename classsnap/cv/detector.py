@@ -106,7 +106,13 @@ class YuNetFaceDetector(FaceDetector):
             # [4:14] -> 5 facial landmarks (right_eye, left_eye, nose_tip, right_mouth, left_mouth)
             # [14] -> confidence score
             bx, by, bw, bh = face[0:4]
-            bbox = BoundingBox(x=int(bx), y=int(by), w=int(bw), h=int(bh))
+            bx = max(0.0, float(bx))
+            by = max(0.0, float(by))
+            bw = max(0.0, min(float(bw), float(img_w) - bx))
+            bh = max(0.0, min(float(bh), float(img_h) - by))
+            if bw < 1.0 or bh < 1.0:
+                continue
+            bbox = BoundingBox(x=int(round(bx)), y=int(round(by)), w=int(round(bw)), h=int(round(bh)))
             confidence = float(face[14])
 
             # Extract 5 landmarks

@@ -13,7 +13,7 @@ logger = get_logger("cv.deduplication")
 def non_maximum_suppression(
     detections: List[DetectionResult],
     iou_threshold: float = 0.40,
-    containment_threshold: float = 0.60,
+    containment_threshold: float = 0.50,
 ) -> List[DetectionResult]:
     """
     Suppresses duplicate face detections across full-image and tile passes.
@@ -49,6 +49,20 @@ def non_maximum_suppression(
             ioa_cand, ioa_k = compute_ioa(cand.bbox, k.bbox)
             # If one box is almost entirely contained within another higher-confidence box
             if ioa_cand >= containment_threshold or ioa_k >= containment_threshold:
+                is_duplicate = True
+                break
+
+            # Collapse detector variants that are nearly identical in position
+            # and size even when YuNet reports slightly different corner coordinates.
+            cand_cx = cand.bbox.x + cand.bbox.w / 2.0
+            cand_cy = cand.bbox.y + cand.bbox.h / 2.0
+            kept_cx = k.bbox.x + k.bbox.w / 2.0
+            kept_cy = k.bbox.y + k.bbox.h / 2.0
+            center_distance = ((cand_cx - kept_cx) ** 2 + (cand_cy - kept_cy) ** 2) ** 0.5
+            cand_min_dim = min(cand.bbox.w, cand.bbox.h)
+            kept_min_dim = min(k.bbox.w, k.bbox.h)
+            size_scale = cand_min_dim / kept_min_dim if kept_min_dim else 0.0
+            if center_distance <= 0.18 * min(cand_min_dim, kept_min_dim) and 0.75 <= size_scale <= 1.35:
                 is_duplicate = True
                 break
 

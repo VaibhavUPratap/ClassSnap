@@ -62,8 +62,7 @@ class SimilarityTransformAligner(FaceAligner):
                     image,
                     transform_matrix,
                     size,
-                    borderMode=cv2.BORDER_CONSTANT,
-                    borderValue=(0, 0, 0),
+                    borderMode=cv2.BORDER_REPLICATE,
                 )
                 return aligned
 
@@ -72,13 +71,28 @@ class SimilarityTransformAligner(FaceAligner):
         margin_w = int(bbox.w * 0.15)
         margin_h = int(bbox.h * 0.15)
 
-        x1 = max(0, bbox.x - margin_w)
-        y1 = max(0, bbox.y - margin_h)
-        x2 = min(img_w, bbox.x2 + margin_w)
-        y2 = min(img_h, bbox.y2 + margin_h)
+        x1 = bbox.x - margin_w
+        y1 = bbox.y - margin_h
+        x2 = bbox.x2 + margin_w
+        y2 = bbox.y2 + margin_h
 
-        crop = image[y1:y2, x1:x2]
+        pad_top = max(0, -y1)
+        pad_bottom = max(0, y2 - img_h)
+        pad_left = max(0, -x1)
+        pad_right = max(0, x2 - img_w)
+
+        crop = image[max(0, y1):min(img_h, y2), max(0, x1):min(img_w, x2)]
         if crop.size == 0:
-            return np.zeros((size[1], size[0], 3), dtype=np.uint8)
+            return np.full((size[1], size[0], 3), 255, dtype=np.uint8)
+
+        if pad_top > 0 or pad_bottom > 0 or pad_left > 0 or pad_right > 0:
+            crop = cv2.copyMakeBorder(
+                crop,
+                pad_top,
+                pad_bottom,
+                pad_left,
+                pad_right,
+                cv2.BORDER_REPLICATE,
+            )
 
         return cv2.resize(crop, size, interpolation=cv2.INTER_LINEAR)

@@ -15,8 +15,11 @@ class AttendanceReportSession(BaseModel):
     session_name: str
     class_date: datetime
     confirmed_at: datetime | None = None
+    confirmed_by: str | None = None
     present_count: int
     absent_count: int
+    unverified_count: int = 0
+    total_registered: int = 0
     attendees: list[AttendanceReportStudent] = Field(default_factory=list)
 
 

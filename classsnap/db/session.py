@@ -94,7 +94,59 @@ def init_db(target_engine: Engine = engine) -> None:
                 target_engine,
                 "ALTER TABLE attendance_detections ADD COLUMN preview_mime_type VARCHAR(50)",
             )
+    _add_missing_columns(
+        target_engine,
+        "attendance_sessions",
+        {"confirmed_by": "VARCHAR(100)"},
+    )
+    _add_missing_columns(
+        target_engine,
+        "proposed_matches",
+        {"candidate_student_id": "VARCHAR(36) REFERENCES students(id) ON DELETE SET NULL"},
+    )
+    added = _add_missing_columns(
+        target_engine,
+        "attendance_records",
+        {
+            "attendance_status": "VARCHAR(32) NOT NULL DEFAULT 'present'",
+            "detection_row_id": "VARCHAR(36) REFERENCES attendance_detections(id) ON DELETE SET NULL",
+            "verification_method": "VARCHAR(32)",
+            "confirmed_at": "DATETIME",
+            "reviewed_by": "VARCHAR(100)",
+            "corrected_at": "DATETIME",
+            "corrected_by": "VARCHAR(100)",
+            "correction_reason": "TEXT",
+        },
+    )
+    if "attendance_status" in added:
+        # Backfill legacy rows: before this column existed, only the boolean
+        # ``present`` flag recorded the outcome.
+        _execute_schema_change(
+            target_engine,
+            "UPDATE attendance_records SET attendance_status = "
+            "CASE WHEN present THEN 'present' ELSE 'absent' END",
+        )
+        _execute_schema_change(
+            target_engine,
+            "UPDATE attendance_records SET confirmed_at = ("
+            "SELECT confirmed_at FROM attendance_sessions "
+            "WHERE attendance_sessions.id = attendance_records.session_id) "
+            "WHERE confirmed_at IS NULL",
+        )
     logger.info("Database tables successfully initialized.")
+
+
+def _add_missing_columns(target_engine: Engine, table: str, columns: dict[str, str]) -> set[str]:
+    """Additively migrate an existing table; returns the columns that were added."""
+    if table not in inspect(target_engine).get_table_names():
+        return set()
+    existing = {column["name"] for column in inspect(target_engine).get_columns(table)}
+    added = set()
+    for name, ddl in columns.items():
+        if name not in existing:
+            _execute_schema_change(target_engine, f"ALTER TABLE {table} ADD COLUMN {name} {ddl}")
+            added.add(name)
+    return added
 
 
 def _execute_schema_change(target_engine: Engine, statement: str) -> None:

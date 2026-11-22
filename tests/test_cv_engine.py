@@ -5,8 +5,10 @@ quality assessment, and error handling for invalid/empty inputs.
 """
 
 from pathlib import Path
+import cv2
 import numpy as np
 import pytest
+from PIL import Image
 
 from classsnap.cv.aligner import SimilarityTransformAligner
 from classsnap.cv.annotator import OpenCVFaceAnnotator
@@ -45,6 +47,35 @@ def test_invalid_image_inputs():
     # 2D grayscale array where 3-channel is expected
     with pytest.raises(ValidationError):
         CVEngine.load_image(np.zeros((100, 100), dtype=np.uint8))
+
+
+def test_load_image_normalizes_alpha_arrays():
+    alpha = np.zeros((100, 120, 4), dtype=np.uint8)
+    # Transparent area: alpha = 0 should composite to white (255, 255, 255)
+    alpha[..., 3] = 0
+    normalized = CVEngine.load_image(alpha)
+    assert normalized.shape == (100, 120, 3)
+    assert normalized.dtype == np.uint8
+    assert np.all(normalized == 255)
+
+    # Encoded PNG bytes with alpha
+    ok, png_bytes = cv2.imencode(".png", alpha)
+    assert ok
+    loaded_from_bytes = CVEngine.load_image(png_bytes.tobytes())
+    assert loaded_from_bytes.shape == (100, 120, 3)
+    assert np.all(loaded_from_bytes == 255)
+
+
+def test_load_image_applies_exif_orientation(tmp_path):
+    source = tmp_path / "rotated.jpg"
+    image = np.zeros((100, 200, 3), dtype=np.uint8)
+    pil_image = Image.fromarray(cv2.cvtColor(image, cv2.COLOR_BGR2RGB))
+    exif = pil_image.getexif()
+    exif[274] = 6
+    pil_image.save(source, exif=exif)
+
+    loaded = CVEngine.load_image(source)
+    assert loaded.shape[:2] == (200, 100)
 
 
 def test_empty_image_detection_returns_empty_list():

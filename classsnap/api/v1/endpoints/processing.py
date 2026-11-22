@@ -1,5 +1,7 @@
 """Classroom image processing endpoint."""
 
+import json
+
 import numpy as np
 import cv2
 from fastapi import APIRouter, Depends, File, UploadFile
@@ -8,7 +10,7 @@ from sqlalchemy.orm import Session
 
 from classsnap.db.session import get_db
 from classsnap.models.student import Student
-from classsnap.schemas.attendance import AttendanceSessionResponse
+from classsnap.schemas.attendance import AttendanceSessionDetailResponse
 from classsnap.services.attendance_service import AttendanceService
 from classsnap.services.enrollment_service import EnrollmentService
 from classsnap.services.matching_service import MatchingService
@@ -17,19 +19,25 @@ from classsnap.cv.engine import CVEngine
 from classsnap.cv.geometry import compute_iou
 from classsnap.cv.deduplication import non_maximum_suppression
 
-from classsnap.api.v1.endpoints.attendance import _session_response
+from classsnap.api.v1.endpoints.attendance import _session_detail_response
 from classsnap.api.v1.upload import read_image_upload
 
 router = APIRouter(prefix="/attendance/sessions", tags=["Attendance"])
 
 
-@router.post("/{session_id}/image", response_model=AttendanceSessionResponse)
+@router.post("/{session_id}/image", response_model=AttendanceSessionDetailResponse)
 async def process_classroom_image(
     session_id: str,
     image: UploadFile = File(...),
     db: Session = Depends(get_db),
 ):
-    """Detect, embed, match, and persist proposals for one classroom image."""
+    """Detect, embed, match, and persist proposals for one classroom image.
+
+    The response carries the proposed roster: confidently and uniquely matched
+    students are already PRESENT; nothing is final until confirmation.
+    """
+    # Fail fast (before running the CV pipeline) on repeated uploads.
+    AttendanceService.require_image_upload_allowed(db, session_id)
     cv_engine = CVEngine.from_settings()
     model_version = cv_engine.embedder.model_version
     roster_embeddings = {}
@@ -44,9 +52,9 @@ async def process_classroom_image(
     image_bytes = await read_image_upload(image)
     detections, _ = cv_engine.process_image(
         image_bytes,
-        score_threshold=0.40,
+        score_threshold=0.65,
         extract_embeddings=True,
-        use_tiling=False,
+        use_tiling=True,
     )
     detections = non_maximum_suppression(detections)
     matcher = MatchingService()
@@ -145,21 +153,43 @@ async def process_classroom_image(
         (
             result.detection_id,
             result.status,
-            result.top_candidate.student_id if result.status == "matched_pending_review" else None,
+            result.top_candidate.student_id if result.status == STATUS_MATCHED else None,
             result.top_candidate.similarity if result.top_candidate else None,
             result.rejection_reason,
+            # Ambiguous faces only *flag* their best candidate for manual
+            # verification; they are never auto-marked present.
+            result.top_candidate.student_id
+            if result.status == STATUS_AMBIGUOUS and result.top_candidate
+            else None,
         )
         for result in matches
         if result.detection_id not in suppressed_unknowns
     ]
     session = AttendanceService.add_proposals(db, session_id, proposals)
-    source_image = cv2.imdecode(np.frombuffer(image_bytes, dtype=np.uint8), cv2.IMREAD_COLOR)
-    if source_image is not None:
-        detections_by_id = {detection.detection_id: detection for detection in detections}
-        for detection in session.detections:
-            source_detection = detections_by_id.get(detection.detection_id)
-            if source_detection is None:
-                continue
+    try:
+        source_image = cv_engine.load_image(image_bytes)
+    except Exception:
+        source_image = None
+    detections_by_id = {detection.detection_id: detection for detection in detections}
+    image_height, image_width = (
+        source_image.shape[:2] if source_image is not None else (None, None)
+    )
+    for detection in session.detections:
+        source_detection = detections_by_id.get(detection.detection_id)
+        if source_detection is None:
+            continue
+        box = source_detection.bbox
+        detection.bbox_json = json.dumps(
+            {
+                "x": float(box.x),
+                "y": float(box.y),
+                "w": float(box.w),
+                "h": float(box.h),
+                "image_width": image_width,
+                "image_height": image_height,
+            }
+        )
+        if source_image is not None:
             aligned = cv_engine.aligner.align(source_image, source_detection)
             encoded, preview = cv2.imencode(
                 ".jpg", aligned, [cv2.IMWRITE_JPEG_QUALITY, 82]
@@ -169,4 +199,4 @@ async def process_classroom_image(
                 detection.preview_mime_type = "image/jpeg"
     db.commit()
     db.refresh(session)
-    return _session_response(session)
+    return _session_detail_response(session, db)

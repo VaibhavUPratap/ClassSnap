@@ -112,6 +112,21 @@ class RosterService:
 
         update_dict = student_in.model_dump(exclude_unset=True)
 
+        if "student_id" in update_dict:
+            new_student_id = update_dict["student_id"].strip().upper()
+            existing = db.execute(
+                select(Student).where(
+                    Student.student_id == new_student_id,
+                    Student.id != student.id,
+                )
+            ).scalar_one_or_none()
+            if existing:
+                raise ValidationError(
+                    message=f"Student ID '{new_student_id}' is already registered.",
+                    details={"student_id": new_student_id},
+                )
+            update_dict["student_id"] = new_student_id
+
         # Handle consent timestamp changes
         if "has_consent" in update_dict:
             if update_dict["has_consent"] and not student.has_consent:

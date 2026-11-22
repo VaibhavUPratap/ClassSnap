@@ -119,6 +119,17 @@ def test_enrollment_fails_with_multiple_faces(db_session):
     assert "multiple faces" in str(exc.value).lower()
 
 
+def test_enrollment_accepts_clearly_dominant_face(db_session):
+    student = _create_consented_student(db_session, "DOM24NT0001")
+    dominant = _make_good_detection(BoundingBox(x=50, y=50, w=180, h=180))
+    small = _make_good_detection(BoundingBox(x=250, y=220, w=80, h=80))
+    svc = EnrollmentService(cv_engine=_make_mock_cv_engine([dominant, small]))
+
+    template = svc.enroll_student_face(db_session, student.student_id, b"fake")
+
+    assert template.student_id == student.id
+
+
 def test_enrollment_collapses_overlapping_partial_face_detections(db_session):
     student = _create_consented_student(db_session, "OVL24NG0001")
     svc = EnrollmentService(cv_engine=_make_mock_cv_engine([

@@ -18,6 +18,7 @@ This folder organizes the project plan and implementation requirements by phase.
 - [Phase 9 — Attendance Reports and Evaluation Framework](phases/phase-9-reports-and-evaluation.md)
 - [Phase 10 — Security, Privacy, Robustness, and Final QA](phases/phase-10-security-privacy-qa.md)
 - [Final Project Delivery](phases/final-project-delivery.md)
+- [Automatic Attendance Population and Confirmation](attendance-workflow.md)
 
 ## Notes
 

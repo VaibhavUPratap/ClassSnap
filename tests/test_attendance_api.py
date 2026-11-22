@@ -1,4 +1,9 @@
 def test_attendance_session_api_lifecycle(client):
+    student = client.post(
+        "/api/v1/students",
+        json={"student_id": "API24LC0001", "first_name": "Api", "last_name": "Student"},
+    )
+    assert student.status_code == 201
     created = client.post(
         "/api/v1/attendance/sessions",
         json={"name": "API Session", "actor": "teacher-1", "class_at": "2026-10-28T09:30:00"},

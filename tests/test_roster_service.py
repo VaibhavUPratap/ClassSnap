@@ -63,6 +63,22 @@ def test_update_and_deactivate_student(db_session):
     assert updated.has_consent is True
     assert updated.consent_recorded_at is not None
 
+    # Edit all student identifiers and demographic fields
+    renamed = RosterService.update_student(
+        db_session,
+        student.id,
+        StudentUpdate(
+            student_id="ACT24AC9999",
+            first_name="Updated",
+            last_name="Student",
+            email="updated@university.edu",
+            consent_notes="Updated consent record",
+        ),
+    )
+    assert renamed.student_id == "ACT24AC9999"
+    assert renamed.full_name == "Updated Student"
+    assert renamed.email == "updated@university.edu"
+
     # Deactivate
     deactivated = RosterService.deactivate_student(db_session, student.id)
     assert deactivated.is_active is False
