@@ -1163,3 +1163,24 @@ td.row-actions .button { margin-left: 2px; }
     scroll-behavior: auto !important;
   }
 }
+
+/* Delete-session confirmation */
+.button.danger { background: var(--absent); color: #fff; }
+.button.danger:hover:not(:disabled) { background: #8f3424; }
+.modal-warning {
+  margin: 0;
+  padding: 12px 14px;
+  border-radius: var(--r-sm);
+  background: var(--absent-wash);
+  color: var(--absent);
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+/* Multiple classroom photos per session */
+.upload-selection { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.upload-thumbs { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; max-width: 100%; }
+.upload-thumbs img { width: 72px; height: 72px; object-fit: cover; border-radius: 6px; }
+.photo-count { margin: -4px 0 12px; font-size: 0.8125rem; }
+.annotated-photo + .annotated-photo { border-top: 1px solid var(--rule); }
+.annotated-photo-title { margin: 0; padding: 12px 16px 0; font-size: 0.875rem; font-weight: 600; color: var(--ink-2); }

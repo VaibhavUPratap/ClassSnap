@@ -511,3 +511,134 @@ def test_init_db_migrates_legacy_attendance_records(tmp_path):
         assert summary.sessions[0].present_count == 1
         assert summary.sessions[0].absent_count == 1
     engine.dispose()
+
+
+# Multiple photos per session -------------------------------------------------------
+
+
+def _photo_engine(monkeypatch, photos):
+    """Fake engine whose faces depend on which photo (by its bytes) is processed."""
+    fake_engine = SimpleNamespace(
+        embedder=SimpleNamespace(model_version="test-sface"),
+        process_image=lambda image, **kwargs: (list(photos[image]), image),
+    )
+    monkeypatch.setattr(CVEngine, "from_settings", classmethod(lambda cls: fake_engine))
+
+
+def _new_session(env):
+    created = env.client.post(
+        "/api/v1/attendance/sessions",
+        json={"name": "Multi-photo lecture", "class_at": "2026-11-21T09:00:00", "actor": REVIEWER},
+    )
+    session_id = created.json()["id"]
+    assert env.client.post(f"/api/v1/attendance/sessions/{session_id}/process").status_code == 200
+    return session_id
+
+
+def test_several_photos_in_one_upload_mark_each_student_present_once(env, monkeypatch):
+    _photo_engine(
+        monkeypatch,
+        {
+            b"front": [_face(0, E[0]), _face(1, E[6])],  # Ada + a stranger
+            b"back": [_face(0, E[1]), _face(1, E[0])],   # Grace + Ada again
+        },
+    )
+    session_id = _new_session(env)
+    response = env.client.post(
+        f"/api/v1/attendance/sessions/{session_id}/images",
+        files=[
+            ("images", ("front.jpg", b"front", "image/jpeg")),
+            ("images", ("back.jpg", b"back", "image/jpeg")),
+        ],
+    )
+    assert response.status_code == 200, response.text
+    detail = response.json()
+    rows = _by_usn(detail)
+
+    assert detail["photo_count"] == 2
+    assert sorted(d["photo_index"] for d in detail["detections"]) == [1, 1, 2, 2]
+    assert len({d["detection_id"] for d in detail["detections"]}) == 4
+    assert rows["WRK24AT0001"]["status"] == "present"  # Ada, seen in both photos
+    assert rows["WRK24AT0002"]["status"] == "present"  # Grace, back photo only
+    assert rows["WRK24AT0005"]["status"] == "not_detected"
+    assert detail["summary"]["proposed_present"] == 2
+    assert detail["confirmation_problems"] == []
+
+    confirmed = _confirm(env, session_id)
+    assert confirmed.status_code == 200, confirmed.text
+    final = _by_usn(confirmed.json())
+    assert final["WRK24AT0001"]["status"] == "present"
+    assert final["WRK24AT0002"]["status"] == "present"
+    with env.Session() as db:
+        assert db.query(AttendanceRecord).filter_by(session_id=session_id).count() == 5
+
+
+def test_photo_added_during_review_updates_only_untouched_rows(env, monkeypatch):
+    _photo_engine(
+        monkeypatch,
+        {
+            b"first": [_face(0, E[0])],                 # Ada
+            b"second": [_face(0, E[1]), _face(1, E[4])],  # Grace + Alan
+        },
+    )
+    session_id = _new_session(env)
+    first = env.client.post(
+        f"/api/v1/attendance/sessions/{session_id}/image",
+        files={"image": ("first.jpg", b"first", "image/jpeg")},
+    )
+    assert first.status_code == 200, first.text
+    assert first.json()["photo_count"] == 1
+    grace_pk = env.ids["WRK24AT0002"]
+    # The reviewer explicitly marks Grace absent before adding the second photo.
+    marked = env.client.put(
+        f"/api/v1/attendance/sessions/{session_id}/attendance/{grace_pk}",
+        json={"status": "absent", "actor": REVIEWER},
+    )
+    assert marked.status_code == 200, marked.text
+
+    second = env.client.post(
+        f"/api/v1/attendance/sessions/{session_id}/images",
+        files=[("images", ("second.jpg", b"second", "image/jpeg"))],
+    )
+    assert second.status_code == 200, second.text
+    detail = second.json()
+    rows = _by_usn(detail)
+    assert detail["photo_count"] == 2
+    assert rows["WRK24AT0001"]["status"] == "present"   # from photo 1
+    assert rows["WRK24AT0005"]["status"] == "present"   # newly found in photo 2
+    assert rows["WRK24AT0002"]["status"] == "absent"    # manual decision kept
+    assert rows["WRK24AT0002"]["manually_set"] is True
+    assert _confirm(env, session_id).status_code == 200
+
+    closed = env.client.post(
+        f"/api/v1/attendance/sessions/{session_id}/images",
+        files=[("images", ("late.jpg", b"first", "image/jpeg"))],
+    )
+    assert closed.status_code == 422
+    assert "confirmed" in closed.text
+
+
+def test_photo_limit_is_enforced_before_processing(env, monkeypatch):
+    calls = []
+
+    def process_image(image, **kwargs):
+        calls.append(image)
+        return [], image
+
+    monkeypatch.setattr(
+        CVEngine,
+        "from_settings",
+        classmethod(lambda cls: SimpleNamespace(
+            embedder=SimpleNamespace(model_version="test-sface"), process_image=process_image
+        )),
+    )
+    session_id = _new_session(env)
+    too_many = env.client.post(
+        f"/api/v1/attendance/sessions/{session_id}/images",
+        files=[
+            ("images", (f"p{i}.jpg", f"photo-{i}".encode(), "image/jpeg"))
+            for i in range(attendance_module.MAX_PHOTOS_PER_SESSION + 1)
+        ],
+    )
+    assert too_many.status_code == 422
+    assert calls == []

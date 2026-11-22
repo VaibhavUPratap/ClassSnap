@@ -35,6 +35,8 @@ class AttendanceSession(Base):
     class_section: Mapped[Optional[str]] = mapped_column(String(16), nullable=True, index=True)
     confirmed_at: Mapped[Optional[datetime]] = mapped_column(nullable=True)
     confirmed_by: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
+    # Classroom photos processed into this session.
+    photo_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0, server_default="0")
 
     detections: Mapped[List["AttendanceDetection"]] = relationship(
         back_populates="session", cascade="all, delete-orphan", order_by="AttendanceDetection.sequence"
@@ -59,6 +61,8 @@ class AttendanceDetection(Base):
     )
     detection_id: Mapped[str] = mapped_column(String(100), nullable=False)
     sequence: Mapped[int] = mapped_column(Integer, nullable=False)
+    # Which classroom photo of the session (1-based) this face came from.
+    photo_index: Mapped[int] = mapped_column(Integer, nullable=False, default=1, server_default="1")
     status: Mapped[str] = mapped_column(String(32), nullable=False)
     bbox_json: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     preview_blob: Mapped[Optional[bytes]] = mapped_column(LargeBinary, nullable=True)

@@ -8,8 +8,13 @@ draft ──/process──▶ processing ──/image──▶ review_required �
 
 1. **Upload** (`POST /attendance/sessions/{id}/image`): the classroom photo goes through YuNet
    full-image and tiled detection, duplicate merging, quality checks, SFace embedding, and
-   calibrated one-to-one matching (`MatchingService`). A session accepts **one** image; repeat
-   uploads are rejected (422) before the CV pipeline runs.
+   calibrated one-to-one matching (`MatchingService`). A session can combine **several photos**
+   of the same class (up to 10, e.g. front and back of the room): send them together to
+   `POST /attendance/sessions/{id}/images` (field `images`, repeatable), or add more one at a
+   time while the session is under review. Each face records its `photo_index`; a student may
+   match at most one face per photo, and a student recognised in any photo is proposed present
+   once. Adding a photo re-derives only roster rows the reviewer has not changed. Uploads after
+   confirmation, or beyond the limit, are rejected (422) before the CV pipeline runs.
 2. **Proposed attendance** is built immediately, with one row per active roster student
    (table `proposed_attendance`):
 
@@ -56,6 +61,8 @@ assigned or confirmed in it. A session without a class covers all active student
 | Method & path | Change |
 |---|---|
 | `POST /attendance/sessions/{id}/image` | Now returns the full session detail (superset of the old response): `attendance`, `summary`, `detections[].bbox`, `confirmation_problems`. |
+| `POST /attendance/sessions/{id}/images` | **New.** Process one or more photos into the same session; returns the session detail with `photo_count` and `detections[].photo_index`. |
+| `DELETE /attendance/sessions/{id}?actor=` | **New.** Permanently removes a session and everything recorded for it; audited as `SESSION_DELETED`. |
 | `GET /attendance/sessions/{id}` | Adds `attendance` (proposed rows; final records once confirmed), `summary`, `confirmed_by`. |
 | `GET /attendance/sessions?status=` | **New.** Session history with present / absent / unverified counts. |
 | `PUT /attendance/sessions/{id}/attendance/{student_id}` | **New.** Body `{status: "present"\|"absent", actor, notes}`. |

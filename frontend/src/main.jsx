@@ -1,5 +1,6 @@
 import { StrictMode, useEffect, useMemo, useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
+import { createPortal } from "react-dom";
 import "./styles.css";
 
 const API = "/api/v1";
@@ -1148,6 +1149,8 @@ function Enroll({ students, refresh, notify, preselectedStudentId }) {
 }
 
 const ACTIVE_SESSION_KEY = "classsnap.activeSession";
+// Mirrors MAX_PHOTOS_PER_SESSION on the server.
+const MAX_PHOTOS = 10;
 const REVIEWER_KEY = "classsnap.reviewer";
 
 function storageGet(key) {
@@ -1413,8 +1416,11 @@ function Attendance({ students, notify }) {
   const classes = classesOf(students);
   const [reviewer, setReviewer] = useState(() => storageGet(REVIEWER_KEY) || "");
   const [session, setSession] = useState(null);
-  const [image, setImage] = useState(null);
-  const [imagePreview, setImagePreview] = useState(null);
+  // Photos chosen but not yet processed, and previews of processed photos
+  // (index = photo_index - 1). Photos are never stored on the server.
+  const [images, setImages] = useState([]);
+  const [imagePreviews, setImagePreviews] = useState([]);
+  const [photoPreviews, setPhotoPreviews] = useState([]);
   const [processing, setProcessing] = useState(false);
   const [busy, setBusy] = useState(false);
   const [confirming, setConfirming] = useState(false);
@@ -1463,30 +1469,49 @@ function Attendance({ students, notify }) {
   const startOver = () => {
     storageSet(ACTIVE_SESSION_KEY, null);
     setSession(null);
-    setImage(null);
-    setImagePreview(null);
+    setImages([]);
+    setImagePreviews([]);
+    setPhotoPreviews([]);
     setConfirmError(null);
     setName("");
     setFilter("all");
   };
 
   const handleImageSelect = (event) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      setImage(file);
-      setImagePreview(URL.createObjectURL(file));
+    const files = Array.from(event.target.files || []);
+    if (files.length) {
+      setImages(files);
+      setImagePreviews(files.map((file) => URL.createObjectURL(file)));
     }
+    // Let the teacher pick the same file again later.
+    event.target.value = "";
   };
 
   const processImage = async (event) => {
     event.preventDefault();
     setProcessing(true);
     const form = new FormData();
-    form.append("image", image);
+    images.forEach((file) => form.append("images", file));
+    const before = session.summary?.proposed_present || 0;
+    const addingMore = session.status === "review_required";
     try {
-      const detail = await request(`/attendance/sessions/${session.id}/image`, { method: "POST", body: form });
+      const detail = await request(`/attendance/sessions/${session.id}/images`, { method: "POST", body: form });
       setSession(detail);
-      notify(`${detail.summary.proposed_present} student(s) automatically marked present`);
+      // Place each processed preview at its photo number so faces line up.
+      const firstIndex = detail.photo_count - images.length;
+      setPhotoPreviews((previous) => {
+        const next = previous.slice(0, firstIndex);
+        while (next.length < firstIndex) next.push(null);
+        return [...next, ...imagePreviews];
+      });
+      setImages([]);
+      setImagePreviews([]);
+      const photos = `${images.length} photo${images.length === 1 ? "" : "s"}`;
+      notify(
+        addingMore
+          ? `${photos} added. ${Math.max(0, detail.summary.proposed_present - before)} more student(s) marked present`
+          : `${photos} processed. ${detail.summary.proposed_present} student(s) automatically marked present`
+      );
     } catch (error) {
       notify(error.message, true);
     } finally {
@@ -1556,6 +1581,9 @@ function Attendance({ students, notify }) {
 
   const confirmed = session?.status === "confirmed";
   const inReview = session && (session.status === "review_required" || confirmed);
+  const photoCount = session?.photo_count || 0;
+  const canAddPhotos =
+    !!session && (session.status === "processing" || session.status === "review_required") && photoCount < MAX_PHOTOS;
   const attendance = session?.attendance || [];
   const unknownFaces = (session?.detections || []).filter(
     (detection) => !detection.student_id && !REJECTED_FACE.has(detection.status)
@@ -1570,7 +1598,7 @@ function Attendance({ students, notify }) {
     <section className="page-section">
       <PageHeading
         title="Take attendance"
-        description="Upload one classroom photo. Recognized students are marked present; you review the rest and confirm."
+        description="Upload one or more classroom photos. Recognized students are marked present; you review the rest and confirm."
       >
         <span className="badge privacy">
           <IconShield /> Photos are processed in memory
@@ -1643,28 +1671,61 @@ function Attendance({ students, notify }) {
             <span className="step">2</span>
             <div>
               <h2>Classroom photo</h2>
-              <p className="muted">One photo per session. Faces are found and matched to the roster.</p>
+              <p className="muted">
+                Add one or more photos of the class, e.g. front and back of the room. A student recognised in any photo is marked present once.
+              </p>
             </div>
           </div>
           <form onSubmit={processImage}>
             <label className={`upload-zone compact ${processing ? "scanning" : ""}`} htmlFor="classroom-image">
-              {imagePreview ? (
-                <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6 }}>
-                  <img src={imagePreview} alt="Classroom thumbnail" style={{ maxHeight: 110, borderRadius: 6, objectFit: "cover" }} />
-                  <strong>{image?.name}</strong>
-                  <small>{(image.size / (1024 * 1024)).toFixed(2)} MB, ready to process</small>
+              {imagePreviews.length ? (
+                <div className="upload-selection">
+                  <div className="upload-thumbs">
+                    {imagePreviews.map((url, index) => (
+                      <img key={url} src={url} alt={`Selected photo ${index + 1}`} />
+                    ))}
+                  </div>
+                  <strong>
+                    {images.length === 1 ? images[0].name : `${images.length} photos selected`}
+                  </strong>
+                  <small>
+                    {(images.reduce((total, file) => total + file.size, 0) / (1024 * 1024)).toFixed(2)} MB, ready to process
+                  </small>
                 </div>
               ) : (
                 <>
                   <div className="upload-icon"><IconUpload /></div>
-                  <strong>Choose a classroom photo</strong>
-                  <small>JPG or PNG with students’ faces visible</small>
+                  <strong>{photoCount ? "Add another photo" : "Choose classroom photos"}</strong>
+                  <small>
+                    {canAddPhotos
+                      ? `JPG or PNG with students’ faces visible. Select several at once (up to ${MAX_PHOTOS} per session).`
+                      : confirmed
+                        ? "Attendance is confirmed, so no more photos can be added."
+                        : "Start a session first."}
+                  </small>
                 </>
               )}
-              <input id="classroom-image" type="file" accept="image/*" onChange={handleImageSelect} disabled={session?.status !== "processing"} />
+              <input
+                id="classroom-image"
+                type="file"
+                accept="image/*"
+                multiple
+                onChange={handleImageSelect}
+                disabled={!canAddPhotos || processing}
+              />
             </label>
-            <Button className="full" type="submit" disabled={session?.status !== "processing" || !image || processing}>
-              {processing ? <span className="spinner" aria-hidden="true" /> : <IconUpload />} {processing ? "Detecting and matching faces…" : inReview ? "Photo already processed" : "Process classroom photo"}
+            {photoCount > 0 && (
+              <p className="muted photo-count">
+                {photoCount} photo{photoCount === 1 ? "" : "s"} processed for this session.
+              </p>
+            )}
+            <Button className="full" type="submit" disabled={!canAddPhotos || !images.length || processing}>
+              {processing ? <span className="spinner" aria-hidden="true" /> : <IconUpload />}{" "}
+              {processing
+                ? "Detecting and matching faces…"
+                : !images.length
+                  ? confirmed ? "Session confirmed" : photoCount ? "Choose photos to add" : "Process classroom photos"
+                  : `${photoCount ? "Add" : "Process"} ${images.length} photo${images.length === 1 ? "" : "s"}`}
             </Button>
           </form>
         </div>
@@ -1700,8 +1761,24 @@ function Attendance({ students, notify }) {
           <AttendanceSummary summary={session.summary || {}} confirmed={confirmed} />
 
           <details className="annotated-details" open={!confirmed}>
-            <summary>Annotated classroom image ({session.detections.length} faces)</summary>
-            <AnnotatedImage src={imagePreview} detections={session.detections} attendance={attendance} />
+            <summary>
+              Annotated classroom {photoCount > 1 ? `photos (${photoCount} photos, ` : "image ("}
+              {session.detections.length} faces)
+            </summary>
+            {photoPreviews.some(Boolean) ? (
+              Array.from({ length: Math.max(photoCount, 1) }, (_, index) => (
+                <div className="annotated-photo" key={index}>
+                  {photoCount > 1 && <h3 className="annotated-photo-title">Photo {index + 1}</h3>}
+                  <AnnotatedImage
+                    src={photoPreviews[index] || null}
+                    detections={session.detections.filter((detection) => (detection.photo_index || 1) === index + 1)}
+                    attendance={attendance}
+                  />
+                </div>
+              ))
+            ) : (
+              <AnnotatedImage src={null} detections={session.detections} attendance={attendance} />
+            )}
           </details>
 
           {!confirmed && unknownFaces.length > 0 && (
@@ -1800,9 +1877,75 @@ function Attendance({ students, notify }) {
   );
 }
 
-function SessionHistoryRow({ item, onResume }) {
+function ConfirmDeleteSessionModal({ item, onCancel, onConfirm }) {
+  const [deleting, setDeleting] = useState(false);
+  const confirmed = item.status === "confirmed";
+
+  useEffect(() => {
+    const onKey = (e) => { if (e.key === "Escape" && !deleting) onCancel(); };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [onCancel, deleting]);
+
+  const remove = async () => {
+    setDeleting(true);
+    try {
+      await onConfirm();
+    } finally {
+      setDeleting(false);
+    }
+  };
+
+  return createPortal(
+    <div
+      className="modal-backdrop"
+      onClick={(e) => { if (e.target === e.currentTarget && !deleting) onCancel(); }}
+      role="alertdialog"
+      aria-modal="true"
+      aria-labelledby="delete-session-title"
+      aria-describedby="delete-session-warning"
+    >
+      <div className="modal">
+        <div className="modal-header">
+          <div className="modal-header-left">
+            <div>
+              <span className="eyebrow">Delete Session</span>
+              <h2 id="delete-session-title" style={{ margin: 0 }}>{item.session_name}</h2>
+              <small style={{ color: "var(--ink-3)" }}>
+                {new Date(item.class_date).toLocaleDateString()} · {confirmed ? "Confirmed" : item.status.replace("_", " ")}
+              </small>
+            </div>
+          </div>
+          <button className="modal-close" onClick={onCancel} disabled={deleting} aria-label="Close">
+            <IconX style={{ width: 18, height: 18 }} />
+          </button>
+        </div>
+        <div className="modal-body">
+          <p id="delete-session-warning" className="modal-warning">
+            This permanently removes the session from the history
+            {confirmed ? `, including ${item.total_registered} saved attendance record${item.total_registered === 1 ? "" : "s"}` : ""}
+            {" "}and its detected face previews. This can't be undone.
+          </p>
+          <div className="modal-footer">
+            <Button type="button" variant="secondary" onClick={onCancel} disabled={deleting} autoFocus>
+              Cancel
+            </Button>
+            <Button type="button" variant="danger" onClick={remove} disabled={deleting}>
+              <IconTrash style={{ width: 15, height: 15 }} />
+              {deleting ? "Deleting…" : "Delete Session"}
+            </Button>
+          </div>
+        </div>
+      </div>
+    </div>,
+    document.body
+  );
+}
+
+function SessionHistoryRow({ item, onResume, onDelete }) {
   const [open, setOpen] = useState(false);
   const [detail, setDetail] = useState(null);
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
   const confirmed = item.status === "confirmed";
 
   const toggle = async () => {
@@ -1843,6 +1986,24 @@ function SessionHistoryRow({ item, onResume }) {
             </>
           ) : (
             <Button variant="secondary" className="sm" onClick={() => onResume(item.session_id)}>Resume</Button>
+          )}
+          <Button
+            variant="outline-danger"
+            className="sm"
+            onClick={() => setConfirmingDelete(true)}
+            aria-label={`Delete session ${item.session_name}`}
+            title="Delete session"
+          >
+            <IconTrash /> Delete
+          </Button>
+          {confirmingDelete && (
+            <ConfirmDeleteSessionModal
+              item={item}
+              onCancel={() => setConfirmingDelete(false)}
+              onConfirm={async () => {
+                if (await onDelete(item)) setConfirmingDelete(false);
+              }}
+            />
           )}
         </td>
       </tr>
@@ -1970,6 +2131,22 @@ function Reports({ students, notify, setPage }) {
     setPage("attendance");
   };
 
+  const remove = async (item) => {
+    try {
+      await request(`/attendance/sessions/${encodeURIComponent(item.session_id)}?actor=web-admin`, {
+        method: "DELETE",
+      });
+    } catch (error) {
+      notify(error.message, true);
+      return false;
+    }
+    if (storageGet(ACTIVE_SESSION_KEY) === item.session_id) storageSet(ACTIVE_SESSION_KEY, null);
+    setHistory((rows) => rows.filter((row) => row.session_id !== item.session_id));
+    notify(`"${item.session_name}" deleted from history`);
+    load();
+    return true;
+  };
+
   const shown = history.filter(inRange);
 
   return (
@@ -2010,7 +2187,7 @@ function Reports({ students, notify, setPage }) {
         <div className="card-toolbar">
           <div>
             <h2>Sessions ({shown.length})</h2>
-            <p className="muted">Unconfirmed sessions can be resumed; confirmed ones are read-only.</p>
+            <p className="muted">Unconfirmed sessions can be resumed; confirmed ones are read-only. Deleting a session is permanent.</p>
           </div>
         </div>
         <div className="table-wrap">
@@ -2023,7 +2200,7 @@ function Reports({ students, notify, setPage }) {
             </thead>
             <tbody>
               {shown.length ? (
-                shown.map((item) => <SessionHistoryRow key={item.session_id} item={item} onResume={resume} />)
+                shown.map((item) => <SessionHistoryRow key={item.session_id} item={item} onResume={resume} onDelete={remove} />)
               ) : (
                 <tr><td colSpan="10" className="empty-state">No attendance sessions for the selected period.</td></tr>
               )}

@@ -166,3 +166,85 @@ def test_duplicate_detection_submission_is_rejected_before_commit(db_session):
         )
     db_session.refresh(session)
     assert session.status == "processing"
+
+
+def test_delete_session_removes_session_and_dependents_with_audit(db_session):
+    from classsnap.exceptions import ResourceNotFoundError
+    from classsnap.models.attendance import (
+        AttendanceDetection,
+        AttendanceSession,
+        ProposedAttendance,
+        ProposedMatch,
+    )
+    from classsnap.models.audit import AuditEvent
+
+    first = RosterService.create_student(
+        db_session,
+        StudentCreate(student_id="ATT24DL0001", first_name="Del", last_name="One"),
+    )
+    second = RosterService.create_student(
+        db_session,
+        StudentCreate(student_id="ATT24DL0002", first_name="Del", last_name="Two"),
+    )
+    session = AttendanceService.create_session(db_session, "Delete Me", actor="teacher-1")
+    AttendanceService.begin_processing(db_session, session.id)
+    AttendanceService.add_proposals(
+        db_session, session.id, [("face-1", "matched_pending_review", first.id, 0.95, None)]
+    )
+    detection = AttendanceService.get_detection(db_session, session.id, "face-1")
+    detection.preview_blob = b"jpeg-bytes"
+    db_session.commit()
+    AttendanceService.review_detection(db_session, session.id, "face-1", first.id, True)
+    AttendanceService.confirm(db_session, session.id, actor="teacher-1")
+    AttendanceService.correct_confirmed_attendance(
+        db_session, session.id, "face-1", second.id, True, actor="teacher-1", reason="Seat swap"
+    )
+    keep = AttendanceService.create_session(db_session, "Keep Me")
+    session_id = session.id
+
+    AttendanceService.delete_session(db_session, session_id, actor="teacher-2")
+
+    assert db_session.get(AttendanceSession, session_id) is None
+    for model in (AttendanceDetection, AttendanceRecord, ReviewDecision, ProposedAttendance):
+        assert db_session.query(model).filter_by(session_id=session_id).count() == 0
+    assert db_session.query(ProposedMatch).count() == 0
+    assert db_session.get(AttendanceSession, keep.id) is not None
+    # Students are untouched.
+    assert db_session.get(type(first), first.id) is not None
+    event = db_session.query(AuditEvent).filter_by(action="SESSION_DELETED", entity_id=session_id).one()
+    assert event.actor == "teacher-2"
+    assert "Delete Me" in event.details
+
+    with pytest.raises(ResourceNotFoundError):
+        AttendanceService.delete_session(db_session, session_id)
+
+
+def test_same_student_may_be_matched_once_per_photo(db_session):
+    student = RosterService.create_student(
+        db_session,
+        StudentCreate(student_id="ATT24MP0001", first_name="Multi", last_name="Photo"),
+    )
+    session = AttendanceService.create_session(db_session, "Two Photos")
+    AttendanceService.begin_processing(db_session, session.id)
+    AttendanceService.add_proposals(
+        db_session,
+        session.id,
+        [("p1-a", "unknown", None, 0.4, "low"), ("p1-b", "unknown", None, 0.4, "low")],
+    )
+    AttendanceService.add_proposals(db_session, session.id, [("p2-a", "unknown", None, 0.4, "low")])
+    refreshed = AttendanceService.get_session(db_session, session.id)
+    assert AttendanceService.photo_count(refreshed) == 2
+    assert {d.detection_id: d.photo_index for d in refreshed.detections} == {
+        "p1-a": 1, "p1-b": 1, "p2-a": 2
+    }
+
+    AttendanceService.review_detection(db_session, session.id, "p1-a", student.id, True, actor="t")
+    # Same student in another photo: allowed (it is the same person seen twice).
+    AttendanceService.review_detection(db_session, session.id, "p2-a", student.id, True, actor="t")
+    # Same student on a second face of the same photo: refused.
+    with pytest.raises(ValidationError, match="same photo"):
+        AttendanceService.review_detection(db_session, session.id, "p1-b", student.id, True, actor="t")
+
+    confirmed = AttendanceService.confirm(db_session, session.id, actor="t")
+    records = db_session.query(AttendanceRecord).filter_by(session_id=confirmed.id).all()
+    assert [(r.student_id, r.attendance_status) for r in records] == [(student.id, "present")]

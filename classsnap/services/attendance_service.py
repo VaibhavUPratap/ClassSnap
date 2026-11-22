@@ -50,6 +50,11 @@ VERIFIED_MANUALLY = "manual"
 VERIFIED_UNRESOLVED = "unresolved"
 VERIFIED_BY_CORRECTION = "manual_correction"
 
+# A session may combine several classroom photos (e.g. front and back of the
+# room). Each face belongs to one photo; a student may appear in many photos
+# but at most once per photo.
+MAX_PHOTOS_PER_SESSION = 10
+
 ProposalTuple = Sequence  # (detection_id, status, student_id, similarity, reason[, candidate_student_id])
 
 
@@ -89,6 +94,24 @@ class AttendanceService:
         return AttendanceService._get(db, session_id)
 
     @staticmethod
+    def delete_session(db: Session, session_id: str, actor: str = "system") -> None:
+        """Permanently remove a session and everything recorded for it.
+
+        Detections (with their stored face previews), proposals, review
+        decisions and final attendance records are removed via ORM cascades.
+        An audit event survives the deletion so the removal stays traceable.
+        """
+        session = AttendanceService._get(db, session_id)
+        details = f"name={session.name!r}; status={session.status}"
+        try:
+            db.delete(session)
+            AttendanceService._audit(db, "SESSION_DELETED", session_id, actor, details)
+            db.commit()
+        except SQLAlchemyError:
+            db.rollback()
+            raise
+
+    @staticmethod
     def get_detection(db: Session, session_id: str, detection_id: str) -> AttendanceDetection:
         detection = db.execute(
             select(AttendanceDetection).where(
@@ -109,21 +132,39 @@ class AttendanceService:
         return session
 
     @staticmethod
-    def require_image_upload_allowed(db: Session, session_id: str) -> AttendanceSession:
-        """Reject a classroom image before running the CV pipeline.
+    def require_image_upload_allowed(
+        db: Session, session_id: str, photo_count: int = 1
+    ) -> AttendanceSession:
+        """Reject classroom photos before running the CV pipeline.
 
-        A session accepts exactly one image; repeated uploads would otherwise
-        create a second set of proposals for the same class.
+        Photos can be added while the session is processing or under review.
+        Once attendance is confirmed the session is closed to new photos.
         """
         session = AttendanceService._get(db, session_id)
-        if session.status != "processing":
-            if session.detections or session.status in {"review_required", "confirmed"}:
-                raise ValidationError(
-                    "A classroom image has already been processed for this session. "
-                    "Create a new session to process another class."
-                )
-            AttendanceService._require_status(session, {"processing"})
+        if session.status == "confirmed":
+            raise ValidationError(
+                "Attendance for this session is already confirmed, so no more photos can be "
+                "added. Create a new session to process another class."
+            )
+        AttendanceService._require_status(session, {"processing", "review_required"})
+        if AttendanceService.photo_count(session) + photo_count > MAX_PHOTOS_PER_SESSION:
+            raise ValidationError(
+                f"A session can combine at most {MAX_PHOTOS_PER_SESSION} photos "
+                f"({AttendanceService.photo_count(session)} already processed)."
+            )
         return session
+
+    @staticmethod
+    def photo_count(session: AttendanceSession) -> int:
+        """Number of classroom photos processed for the session."""
+        # Sessions processed before multi-photo support stored no count but
+        # always had exactly one photo once processed.
+        legacy = 1 if session.status in {"review_required", "confirmed"} else 0
+        return max(
+            session.photo_count or 0,
+            legacy,
+            max((d.photo_index or 1 for d in session.detections), default=0),
+        )
 
     # -------------------------------------------------------------- proposals
 
@@ -134,9 +175,17 @@ class AttendanceService:
         proposals: Iterable[ProposalTuple],
         actor: str = "system",
     ) -> AttendanceSession:
-        """Persist face proposals, build the proposed roster, and move to review."""
+        """Persist one photo's face proposals, update the proposed roster, and move to review.
+
+        Calling it again while the session is under review adds another photo:
+        its faces get the next ``photo_index`` and roster rows the reviewer has
+        not touched are re-derived from the faces of every photo.
+        """
         session = AttendanceService._get(db, session_id)
-        AttendanceService._require_status(session, {"processing"})
+        AttendanceService._require_status(session, {"processing", "review_required"})
+        adding_photo = session.status == "review_required"
+        photo_index = AttendanceService.photo_count(session) + 1
+        first_sequence = len(session.detections)
         proposal_list = [tuple(proposal) + (None,) * (6 - len(proposal)) for proposal in proposals]
         detection_ids = [proposal[0] for proposal in proposal_list]
         if len(detection_ids) != len(set(detection_ids)):
@@ -159,7 +208,8 @@ class AttendanceService:
             detection = AttendanceDetection(
                 session_id=session.id,
                 detection_id=detection_id,
-                sequence=sequence,
+                sequence=first_sequence + sequence,
+                photo_index=photo_index,
                 status=status,
             )
             detection.proposed_match = ProposedMatch(
@@ -170,11 +220,14 @@ class AttendanceService:
                 candidate_student_id=candidate_id,
             )
             db.add(detection)
+        session.photo_count = photo_index
         db.flush()
         db.refresh(session)
-        AttendanceService._build_proposed_attendance(db, session)
+        AttendanceService._build_proposed_attendance(db, session, refresh_untouched=adding_photo)
         session.status = "review_required"
-        AttendanceService._audit(db, "PROPOSALS_CREATED", session.id, actor)
+        AttendanceService._audit(
+            db, "PROPOSALS_CREATED", session.id, actor, f"photo={photo_index}; faces={len(proposal_list)}"
+        )
         db.commit()
         db.refresh(session)
         return session
@@ -188,41 +241,67 @@ class AttendanceService:
         return list(db.execute(statement.order_by(Student.student_id)).scalars())
 
     @staticmethod
-    def _build_proposed_attendance(db: Session, session: AttendanceSession) -> None:
-        """Create a proposed row for every active roster student that lacks one."""
-        existing = {row.student_id for row in session.proposed_attendance}
+    def _build_proposed_attendance(
+        db: Session, session: AttendanceSession, refresh_untouched: bool = False
+    ) -> None:
+        """Create a proposed row for every active roster student that lacks one.
+
+        With ``refresh_untouched`` (a photo was added), rows the reviewer has
+        not changed are re-derived from the faces of all photos as well.
+        """
+        existing_rows = {row.student_id: row for row in session.proposed_attendance}
+        existing = set(existing_rows)
         roster = {
             student.id for student in AttendanceService.roster_students(db, session.class_section)
         }
 
-        matched: dict[str, list[AttendanceDetection]] = {}
+        # student -> photo -> faces confidently matched to them in that photo
+        matched: dict[str, dict[int, list[AttendanceDetection]]] = {}
         candidates: dict[str, AttendanceDetection] = {}
         for detection in session.detections:
             match = detection.proposed_match
             if match is None:
                 continue
             if match.status == STATUS_MATCHED and match.student_id:
-                matched.setdefault(match.student_id, []).append(detection)
+                matched.setdefault(match.student_id, {}).setdefault(
+                    detection.photo_index or 1, []
+                ).append(detection)
             elif match.candidate_student_id and not match.student_id:
                 current = candidates.get(match.candidate_student_id)
                 if current is None or (match.similarity or 0) > (current.proposed_match.similarity or 0):
                     candidates[match.candidate_student_id] = detection
 
-        for student_id in sorted(roster - existing):
-            faces = matched.get(student_id, [])
-            if len(faces) == 1:
-                # Confident, unique identification → proposed PRESENT.
-                detection = faces[0]
-                status, similarity = PROPOSED_PRESENT, detection.proposed_match.similarity
-            elif len(faces) > 1:
-                # Defensive: the matcher guarantees uniqueness, but never
-                # auto-mark a student who was assigned to more than one face.
-                detection, status, similarity = None, PROPOSED_NEEDS_REVIEW, None
-            elif student_id in candidates:
+        def proposal_for(student_id):
+            per_photo = matched.get(student_id, {})
+            if any(len(faces) > 1 for faces in per_photo.values()):
+                # Defensive: the matcher guarantees uniqueness within a photo,
+                # but never auto-mark a student assigned to two faces of one photo.
+                return None, PROPOSED_NEEDS_REVIEW, None
+            if per_photo:
+                # Confident, unique identification in at least one photo →
+                # proposed PRESENT, backed by the strongest of those faces.
+                detection = max(
+                    (faces[0] for faces in per_photo.values()),
+                    key=lambda d: d.proposed_match.similarity or 0,
+                )
+                return detection, PROPOSED_PRESENT, detection.proposed_match.similarity
+            if student_id in candidates:
                 detection = candidates[student_id]
-                status, similarity = PROPOSED_NEEDS_REVIEW, detection.proposed_match.similarity
-            else:
-                detection, status, similarity = None, PROPOSED_NOT_DETECTED, None
+                return detection, PROPOSED_NEEDS_REVIEW, detection.proposed_match.similarity
+            return None, PROPOSED_NOT_DETECTED, None
+
+        if refresh_untouched:
+            for student_id in sorted(roster & existing):
+                row = existing_rows[student_id]
+                if row.manually_set:
+                    continue
+                detection, status, similarity = proposal_for(student_id)
+                row.status = row.auto_status = status
+                row.detection_row_id = detection.id if detection else None
+                row.similarity = similarity
+
+        for student_id in sorted(roster - existing):
+            detection, status, similarity = proposal_for(student_id)
             db.add(
                 ProposedAttendance(
                     session_id=session.id,
@@ -289,12 +368,13 @@ class AttendanceService:
                 .where(
                     AttendanceDetection.session_id == session_id,
                     AttendanceDetection.id != detection.id,
+                    AttendanceDetection.photo_index == detection.photo_index,
                     ProposedMatch.student_id == student_id,
                 )
-            ).scalar_one_or_none()
+            ).scalars().first()
             if other is not None:
                 raise ValidationError(
-                    f"This student is already assigned to face '{other}'. "
+                    f"This student is already assigned to face '{other}' in the same photo. "
                     "Unassign that face first so one student is never counted twice."
                 )
 
@@ -321,9 +401,20 @@ class AttendanceService:
         # Any student previously linked to this face loses that evidence.
         for row in rows.values():
             if row.detection_row_id == detection.id and row.student_id != (student_id if present else None):
-                row.detection_row_id = None
-                row.similarity = None
-                if row.status in {PROPOSED_PRESENT, PROPOSED_NEEDS_REVIEW}:
+                # The same student may still be identified in another photo.
+                fallback = next(
+                    (
+                        other
+                        for other in session.detections
+                        if other.id != detection.id
+                        and other.proposed_match
+                        and other.proposed_match.student_id == row.student_id
+                    ),
+                    None,
+                )
+                row.detection_row_id = fallback.id if fallback else None
+                row.similarity = fallback.proposed_match.similarity if fallback else None
+                if fallback is None and row.status in {PROPOSED_PRESENT, PROPOSED_NEEDS_REVIEW}:
                     row.status = PROPOSED_NOT_DETECTED
                 row.manually_set = True
                 row.updated_by, row.updated_at = actor, now
@@ -371,13 +462,17 @@ class AttendanceService:
         if row is None:
             raise ResourceNotFoundError("Roster student in this session", student_id)
         now = _now()
-        if status == PROPOSED_ABSENT and row.detection_row_id:
-            # The reviewer is overriding a face identification; release that
-            # face so it shows as unresolved rather than silently keeping the
-            # wrong identity attached to it.
-            detection = db.get(AttendanceDetection, row.detection_row_id)
-            match = detection.proposed_match if detection else None
-            if match is not None and match.student_id == student_id:
+        released = [
+            detection
+            for detection in session.detections
+            if detection.proposed_match and detection.proposed_match.student_id == student_id
+        ] if status == PROPOSED_ABSENT else []
+        if status == PROPOSED_ABSENT and (row.detection_row_id or released):
+            # The reviewer is overriding a face identification; release every
+            # face (in any photo) attached to this student so they show as
+            # unresolved rather than silently keeping the wrong identity.
+            for detection in released:
+                match = detection.proposed_match
                 db.add(
                     ReviewDecision(
                         session_id=session.id,
@@ -439,24 +534,30 @@ class AttendanceService:
         for detection_row_id, count in face_owners.items():
             if count > 1:
                 problems.append("One detected face is assigned to more than one present student.")
+        # A student may appear in several photos, but only once per photo.
         assigned = Counter(
-            d.proposed_match.student_id
+            (d.photo_index or 1, d.proposed_match.student_id)
             for d in session.detections
             if d.proposed_match and d.proposed_match.student_id
         )
+        photo_of = {d.id: d.photo_index or 1 for d in session.detections}
         rows_by_student = {row.student_id: row for row in rows}
         for detection in session.detections:
             match = detection.proposed_match
             if not match or not match.student_id:
                 continue
-            if assigned[match.student_id] > 1:
+            count = assigned[(detection.photo_index or 1, match.student_id)]
+            if count > 1:
                 problems.append(
-                    f"Student '{match.student_id}' is assigned to {assigned[match.student_id]} faces."
+                    f"Student '{match.student_id}' is assigned to {count} faces in one photo."
                 )
                 continue
             row = rows_by_student.get(match.student_id)
-            if row is not None and row.status == PROPOSED_PRESENT and row.detection_row_id not in (
-                None, detection.id
+            if (
+                row is not None
+                and row.status == PROPOSED_PRESENT
+                and row.detection_row_id not in (None, detection.id)
+                and photo_of.get(row.detection_row_id) == (detection.photo_index or 1)
             ):
                 problems.append(
                     f"Face '{detection.detection_id}' and the roster disagree about who it is."

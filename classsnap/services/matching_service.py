@@ -67,10 +67,22 @@ class MatchingThresholds:
     accept: float = 0.38      # Cosine similarity above which a match is accepted
     ambiguity_gap: float = 0.06  # Minimum gap between top-2 scores for unambiguous assignment
     low_quality: float = 0.0  # Placeholder: low-quality faces filtered before matching
+    # Scores in [accept, auto_accept) are plausible but not safe to auto-mark:
+    # they are returned as AMBIGUOUS so the candidate is flagged for one-click
+    # verification. Measured with SFace on 16-32 px classroom-resolution faces,
+    # 2.3% of impostor pairs reach 0.38 (p99 = 0.405) but only 0.6% reach 0.42;
+    # on a real 1280 px classroom photo, non-matching faces ran continuously up
+    # to 0.39 while confident matches started at 0.44.
+    auto_accept: float = 0.42
+
+    @property
+    def effective_auto_accept(self) -> float:
+        return max(self.accept, self.auto_accept)
 
     def to_dict(self) -> dict:
         return {
             "accept": self.accept,
+            "auto_accept": self.effective_auto_accept,
             "ambiguity_gap": self.ambiguity_gap,
         }
 
@@ -239,6 +251,21 @@ class MatchingService:
                 second_candidate=second_candidate,
                 similarity_gap=gap,
                 rejection_reason=f"Similarity gap {gap:.4f} < ambiguity threshold {self.thresholds.ambiguity_gap}",
+                embedding_model_version=model_version,
+                all_candidates=all_candidates,
+            )
+
+        if top_sim < self.thresholds.effective_auto_accept:
+            return MatchResult(
+                detection_id=detection_id,
+                status=STATUS_AMBIGUOUS,
+                top_candidate=top_candidate,
+                second_candidate=second_candidate,
+                similarity_gap=gap,
+                rejection_reason=(
+                    f"Similarity {top_sim:.4f} is in the review band "
+                    f"[{self.thresholds.accept}, {self.thresholds.effective_auto_accept}); verify identity"
+                ),
                 embedding_model_version=model_version,
                 all_candidates=all_candidates,
             )

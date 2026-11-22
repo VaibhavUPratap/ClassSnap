@@ -194,9 +194,11 @@ def _session_detail_response(session, db: Session) -> AttendanceSessionDetailRes
                     and detection.proposed_match.candidate_student_id in students
                     else None
                 ),
+                photo_index=detection.photo_index or 1,
             )
             for detection in session.detections
         ],
+        photo_count=AttendanceService.photo_count(session),
         attendance=entries,
         summary=summary,
         confirmation_problems=problems,
@@ -224,6 +226,13 @@ def list_sessions(
 @router.get("/{session_id}", response_model=AttendanceSessionDetailResponse)
 def get_session(session_id: str, db: Session = Depends(get_db)):
     return _session_detail_response(AttendanceService.get_session(db, session_id), db)
+
+
+@router.delete("/{session_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_session(session_id: str, actor: str = "system", db: Session = Depends(get_db)):
+    """Permanently remove a session (and its attendance) from the history."""
+    AttendanceService.delete_session(db, session_id, actor)
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
 @router.get("/{session_id}/detections/{detection_id}/preview")

@@ -45,3 +45,51 @@ def test_attendance_session_api_lifecycle(client):
     )
     assert confirmed.status_code == 200
     assert confirmed.json()["status"] == "confirmed"
+
+
+def test_delete_attendance_session_removes_it_from_history(client):
+    student = client.post(
+        "/api/v1/students",
+        json={"student_id": "API24DL0001", "first_name": "Gone", "last_name": "Soon"},
+    )
+    assert student.status_code == 201
+    created = client.post(
+        "/api/v1/attendance/sessions", json={"name": "Delete Session", "actor": "teacher-1"}
+    )
+    session_id = created.json()["id"]
+    client.post(f"/api/v1/attendance/sessions/{session_id}/process")
+    client.post(
+        f"/api/v1/attendance/sessions/{session_id}/proposals",
+        json={
+            "actor": "system",
+            "proposals": [
+                {
+                    "detection_id": "face-del-1",
+                    "status": "matched_pending_review",
+                    "student_id": student.json()["id"],
+                    "similarity": 0.97,
+                }
+            ],
+        },
+    )
+    confirmed = client.post(
+        f"/api/v1/attendance/sessions/{session_id}/confirm", json={"actor": "teacher-1"}
+    )
+    assert confirmed.status_code == 200
+    assert any(item["session_id"] == session_id for item in client.get("/api/v1/attendance/sessions").json())
+
+    deleted = client.delete(
+        f"/api/v1/attendance/sessions/{session_id}", params={"actor": "teacher-1"}
+    )
+    assert deleted.status_code == 204
+    assert deleted.content == b""
+
+    history = client.get("/api/v1/attendance/sessions").json()
+    assert all(item["session_id"] != session_id for item in history)
+    assert client.get(f"/api/v1/attendance/sessions/{session_id}").status_code == 404
+    student_history = client.get(f"/api/v1/attendance/students/{student.json()['id']}/history")
+    assert student_history.status_code == 200
+    assert student_history.json()["total_sessions"] == 0
+
+    again = client.delete(f"/api/v1/attendance/sessions/{session_id}")
+    assert again.status_code == 404

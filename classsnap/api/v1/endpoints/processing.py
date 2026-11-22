@@ -1,5 +1,6 @@
 """Classroom image processing endpoint."""
 
+import dataclasses
 import json
 
 import numpy as np
@@ -11,7 +12,8 @@ from sqlalchemy.orm import Session
 from classsnap.db.session import get_db
 from classsnap.models.student import Student
 from classsnap.schemas.attendance import AttendanceSessionDetailResponse
-from classsnap.services.attendance_service import AttendanceService
+from classsnap.exceptions import ValidationError
+from classsnap.services.attendance_service import MAX_PHOTOS_PER_SESSION, AttendanceService
 from classsnap.services.enrollment_service import EnrollmentService
 from classsnap.services.matching_service import MatchingService
 from classsnap.services.matching_service import STATUS_AMBIGUOUS, STATUS_MATCHED
@@ -25,33 +27,67 @@ from classsnap.api.v1.upload import read_image_upload
 router = APIRouter(prefix="/attendance/sessions", tags=["Attendance"])
 
 
+MAX_PHOTOS_PER_REQUEST = MAX_PHOTOS_PER_SESSION
+
+
+def _roster_embeddings(db: Session, session, cv_engine):
+    """Embeddings for the session's roster. Only the session's class is
+    matched, so students of other classes can never be proposed present."""
+    model_version = cv_engine.embedder.model_version
+    roster_embeddings = {}
+    for student in AttendanceService.roster_students(db, session.class_section):
+        embedding = EnrollmentService.get_aggregated_student_embedding(
+            db, student.id, required_model_version=model_version
+        )
+        if embedding is not None:
+            roster_embeddings[student.id] = (student.full_name, embedding, model_version)
+    return roster_embeddings, model_version
+
+
 @router.post("/{session_id}/image", response_model=AttendanceSessionDetailResponse)
 async def process_classroom_image(
     session_id: str,
     image: UploadFile = File(...),
     db: Session = Depends(get_db),
 ):
-    """Detect, embed, match, and persist proposals for one classroom image.
+    """Detect, embed, match, and persist proposals for one classroom photo.
 
     The response carries the proposed roster: confidently and uniquely matched
-    students are already PRESENT; nothing is final until confirmation.
+    students are already PRESENT; nothing is final until confirmation. Calling
+    it again before confirmation adds another photo to the same session.
     """
-    # Fail fast (before running the CV pipeline) on repeated uploads.
-    session = AttendanceService.require_image_upload_allowed(db, session_id)
-    cv_engine = CVEngine.from_settings()
-    model_version = cv_engine.embedder.model_version
-    roster_embeddings = {}
-    # Only the session's class is matched, so students of other classes can
-    # never be proposed present.
-    students = AttendanceService.roster_students(db, session.class_section)
-    for student in students:
-        embedding = EnrollmentService.get_aggregated_student_embedding(
-            db, student.id, required_model_version=model_version
-        )
-        if embedding is not None:
-            roster_embeddings[student.id] = (student.full_name, embedding, model_version)
+    return await process_classroom_images(session_id, [image], db)
 
-    image_bytes = await read_image_upload(image)
+
+@router.post("/{session_id}/images", response_model=AttendanceSessionDetailResponse)
+async def process_classroom_images(
+    session_id: str,
+    images: list[UploadFile] = File(...),
+    db: Session = Depends(get_db),
+):
+    """Process one or more classroom photos of the same class into one session.
+
+    A student recognised in any photo is proposed PRESENT once. Every upload is
+    validated before any face detection runs.
+    """
+    if not images:
+        raise ValidationError("Choose at least one classroom photo.")
+    if len(images) > MAX_PHOTOS_PER_REQUEST:
+        raise ValidationError(f"Upload at most {MAX_PHOTOS_PER_REQUEST} photos at a time.")
+    # Fail fast (before running the CV pipeline) on closed sessions or too many photos.
+    session = AttendanceService.require_image_upload_allowed(db, session_id, len(images))
+    photos = [await read_image_upload(image) for image in images]
+    cv_engine = CVEngine.from_settings()
+    roster_embeddings, model_version = _roster_embeddings(db, session, cv_engine)
+    for image_bytes in photos:
+        _process_photo(db, session_id, cv_engine, roster_embeddings, model_version, image_bytes)
+    session = AttendanceService.get_session(db, session_id)
+    db.refresh(session)
+    return _session_detail_response(session, db)
+
+
+def _process_photo(db: Session, session_id: str, cv_engine, roster_embeddings, model_version, image_bytes):
+    """Detect and match the faces of one photo and store them as its proposals."""
     detections, _ = cv_engine.process_image(
         image_bytes,
         score_threshold=0.65,
@@ -120,6 +156,13 @@ async def process_classroom_image(
         if candidate_score > current_score:
             group["detection"] = candidate
     detections = [group["detection"] for group in groups]
+    # Keep face IDs unique across the photos of one session.
+    photo_index = AttendanceService.photo_count(AttendanceService.get_session(db, session_id)) + 1
+    if photo_index > 1:
+        detections = [
+            dataclasses.replace(detection, detection_id=f"p{photo_index}-{detection.detection_id}")
+            for detection in detections
+        ]
     detection_inputs = [
         (
             detection.detection_id,
@@ -177,6 +220,8 @@ async def process_classroom_image(
         source_image.shape[:2] if source_image is not None else (None, None)
     )
     for detection in session.detections:
+        if detection.photo_index != session.photo_count:
+            continue
         source_detection = detections_by_id.get(detection.detection_id)
         if source_detection is None:
             continue
@@ -192,7 +237,8 @@ async def process_classroom_image(
             }
         )
         if source_image is not None:
-            aligned = cv_engine.aligner.align(source_image, source_detection)
+            align = getattr(cv_engine, "align_for_recognition", cv_engine.aligner.align)
+            aligned = align(source_image, source_detection)
             encoded, preview = cv2.imencode(
                 ".jpg", aligned, [cv2.IMWRITE_JPEG_QUALITY, 82]
             )
@@ -200,5 +246,3 @@ async def process_classroom_image(
                 detection.preview_blob = preview.tobytes()
                 detection.preview_mime_type = "image/jpeg"
     db.commit()
-    db.refresh(session)
-    return _session_detail_response(session, db)

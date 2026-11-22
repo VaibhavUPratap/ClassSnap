@@ -97,9 +97,16 @@ def init_db(target_engine: Engine = engine) -> None:
     _add_missing_columns(
         target_engine,
         "attendance_sessions",
-        {"confirmed_by": "VARCHAR(100)", "class_section": "VARCHAR(16)"},
+        {
+            "confirmed_by": "VARCHAR(100)",
+            "class_section": "VARCHAR(16)",
+            "photo_count": "INTEGER NOT NULL DEFAULT 0",
+        },
     )
     _add_missing_columns(target_engine, "students", {"class_section": "VARCHAR(16)"})
+    _add_missing_columns(
+        target_engine, "attendance_detections", {"photo_index": "INTEGER NOT NULL DEFAULT 1"}
+    )
     _add_missing_columns(
         target_engine,
         "proposed_matches",

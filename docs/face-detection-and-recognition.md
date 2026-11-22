@@ -65,8 +65,9 @@ These landmarks are used to align the face before SFace embedding extraction.
 
 | Setting | Default | Effect |
 |---|---:|---|
-| Detection score threshold | `0.65` | Default threshold in application settings |
-| Classroom processing threshold | `0.40` | Used by the attendance processing endpoint to improve recall |
+| Detection score threshold | `0.65` | Default threshold in application settings and classroom processing |
+| Small-face upscale target | `3840` px, max `3x` | Photos whose longest side is under 2560 px are bicubically upscaled before detection (see below) |
+| Minimum face size | `12` px | Measured in the original photo; smaller boxes are discarded |
 | Enrollment threshold | `0.40` | Used while searching for a usable portrait for enrollment |
 | NMS threshold | `0.30` | YuNet's internal NMS threshold |
 | Top-K candidates | `5000` | Maximum candidates considered by YuNet |
@@ -84,13 +85,39 @@ For large images, `TiledFaceDetector` can combine a full-image pass with overlap
 
 Overlapping detections are deduplicated using IoU and containment. The remaining faces are sorted in classroom order: top-to-bottom rows and left-to-right within each row.
 
-The attendance processing endpoint currently calls `CVEngine.process_image(..., use_tiling=False)` and instead uses the lower `0.40` score threshold for recall. Tiled detection remains available through `CVEngine` and is enabled for large images when `use_tiling=True`.
+The attendance processing endpoint calls `CVEngine.process_image(..., score_threshold=0.65, use_tiling=True)`.
+
+### Small-face recovery
+
+Messaging apps shrink classroom photos to about 1280 px, which leaves back-row faces 12-24 px wide.
+YuNet localises such faces and their landmarks poorly, and the previous 24 px quality floor discarded
+them, so on a real 1280 x 960 classroom photo only 23 of roughly 48 visible faces reached recognition.
+
+`CVEngine.detection_upscale()` now picks a factor that brings the longest side to about 3840 px
+(at most 3x; photos already at 2560 px or more are left alone). Detection runs on the bicubic
+upscale, boxes and landmarks are mapped back to original coordinates, quality is judged on the
+original pixels, and `align_for_recognition()` aligns each face from an upscaled local region.
+
+Measured with `scripts/evaluate_small_face_recognition.py` (16 enrolled portraits shrunk and
+JPEG-compressed to classroom face sizes, matched against clean templates):
+
+| Face width | Previous rank-1 / genuine similarity | Upscaled detection rank-1 / genuine similarity |
+|---:|---|---|
+| 16 px | 13/16 / 0.410 | 15/16 / 0.441 |
+| 20 px | 16/16 / 0.549 | 16/16 / 0.590 |
+| 24 px | 16/16 / 0.650 | 16/16 / 0.683 |
+| 32 px | 16/16 / 0.728 | 16/16 / 0.768 |
+
+Probes come from the same photo as their template, so these genuine scores are an upper bound.
+Most of the gain comes from more precise landmarks; resampling alone adds about 0.015 at 16 px.
+On the real classroom photo, usable faces rose from 23 to 42 and confident matches from 4 to 8,
+in about 0.6 s instead of 0.2 s.
 
 ## 2. Face Quality Assessment
 
 Detection and recognition are separate from face quality. `OpenCVFaceQualityAssessor` evaluates the detected face crop using OpenCV and NumPy heuristics:
 
-- minimum face size: `24` pixels
+- minimum face size: `12` pixels in classroom processing (`min_face_size_px`)
 - Laplacian variance sharpness: at least `15`
 - mean brightness: between `25` and `245`
 - grayscale contrast: at least `12`
@@ -166,13 +193,20 @@ The default `MatchingThresholds` are:
 
 | Rule | Default | Meaning |
 |---|---:|---|
-| Acceptance | `0.38` | Top cosine similarity must be at or above this value |
+| Acceptance | `0.38` | Below this the face is `unknown` |
+| Auto-accept | `0.42` | Between 0.38 and 0.42 the best candidate is only flagged for review |
 | Ambiguity gap | `0.06` | Top-minus-second score must be at least this value |
 
 Matching decisions:
 
 - **`matched_pending_review`**: the top score passes acceptance and is sufficiently separated from the second candidate.
-- **`ambiguous`**: the top score passes acceptance, but the top-two gap is too small.
+- **`ambiguous`**: the top score passes acceptance, but the top-two gap is too small, or the score is in the 0.38-0.42 review band. The candidate is shown to the reviewer as NEEDS REVIEW and is never auto-marked present.
+
+The review band comes from measured impostor scores at classroom resolution: 2.4% of
+different-person pairs reach 0.38 (99th percentile 0.40), but only 0.7% reach 0.42. With a
+20-student roster, a 0.38 cut-off gives an unknown face a substantial chance of resembling
+someone. On the real classroom photo, non-matching faces ran continuously up to 0.39, while
+confident matches started at 0.44.
 - **`unknown`**: the top score is below the acceptance threshold or a unique assignment cannot be made.
 - **`low_quality`**: quality checks or embedding extraction prevented matching.
 - **`no_candidate`**: the roster has no compatible template or no template of the requested model version.
@@ -225,3 +259,12 @@ The repository also includes `scripts/download_models.py`. It downloads the two 
 - Do not use model-specific vectors from another model version for comparison.
 - Keep the model and threshold configuration reproducible for evaluation and audit.
 - Attendance proposals are not final until a human reviewer approves the session.
+
+## Getting the best results from classroom photos
+
+Resolution is the largest single factor. A face 48 px wide scores about 0.88 against its own
+template; at 16 px it scores about 0.44, close to the acceptance line. Messaging apps typically
+resize photos to 1280 px, which shrinks every face about 3x. Upload the original camera file
+(for example, send it as a document or upload it directly) so back-row faces stay recognisable.
+Enroll every student with a clear frontal portrait; one student enrolled from a bad crop can
+never be matched reliably.

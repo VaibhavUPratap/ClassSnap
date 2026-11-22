@@ -46,6 +46,7 @@ class AttendanceDetectionResponse(BaseModel):
     bbox: Optional[dict] = None
     candidate_student_id: Optional[str] = None
     candidate_student_name: Optional[str] = None
+    photo_index: int = 1
 
 
 class RosterAttendanceEntry(BaseModel):
@@ -80,6 +81,7 @@ class RosterAttendanceEntry(BaseModel):
 
 class AttendanceSessionDetailResponse(AttendanceSessionResponse):
     detections: list[AttendanceDetectionResponse] = Field(default_factory=list)
+    photo_count: int = 0
     attendance: list[RosterAttendanceEntry] = Field(default_factory=list)
     summary: dict[str, int] = Field(default_factory=dict)
     confirmation_problems: list[str] = Field(default_factory=list)

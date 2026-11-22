@@ -51,6 +51,14 @@ class Settings(BaseSettings):
     detection_score_threshold: float = 0.65
     iou_merge_threshold: float = 0.40
     enable_tiled_detection: bool = True
+    # Small-face recovery: photos whose longest side is well below this are
+    # bicubically upscaled (at most max_detection_upscale x) before detection
+    # and alignment, so 12-24 px faces in compressed classroom photos are found
+    # and aligned on precise landmarks. min_face_size_px is measured in the
+    # original photo.
+    small_face_target_side: int = 3840
+    max_detection_upscale: float = 3.0
+    min_face_size_px: int = 12
 
     @model_validator(mode="after")
     def validate_security_settings(self) -> "Settings":
