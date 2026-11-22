@@ -15,6 +15,8 @@ from sqlalchemy.orm import Session
 
 from classsnap.config import get_settings
 from classsnap.cv.engine import CVEngine
+from classsnap.cv.deduplication import non_maximum_suppression
+from classsnap.cv.types import BoundingBox, DetectionResult
 from classsnap.exceptions import (
     BiometricProcessingError,
     ResourceNotFoundError,
@@ -33,6 +35,33 @@ class EnrollmentService:
 
     def __init__(self, cv_engine: Optional[CVEngine] = None):
         self.cv_engine = cv_engine or CVEngine.from_settings()
+
+    def _haar_detection_fallback(self, image: np.ndarray) -> List[DetectionResult]:
+        """Low-cost Haar cascade fallback for images missed by YuNet."""
+        if not hasattr(cv2, "CascadeClassifier"):
+            return []
+        cascade_path = cv2.data.haarcascades + "haarcascade_frontalface_default.xml"
+        cascade = cv2.CascadeClassifier(cascade_path)
+        if cascade.empty():
+            return []
+        gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+        gray = cv2.equalizeHist(gray)
+        boxes = cascade.detectMultiScale(
+            gray,
+            scaleFactor=1.08,
+            minNeighbors=6,
+            flags=cv2.CASCADE_SCALE_IMAGE,
+            minSize=(40, 40),
+            maxSize=(int(image.shape[1] * 0.9), int(image.shape[0] * 0.9)),
+        )
+        return [
+            DetectionResult(
+                bbox=BoundingBox(x=int(x), y=int(y), w=int(w), h=int(h)),
+                confidence=0.55,
+                status="detected",
+            )
+            for x, y, w, h in boxes
+        ]
 
     def enroll_student_face(
         self,
@@ -83,21 +112,25 @@ class EnrollmentService:
         # 3. Load and validate image
         image = self.cv_engine.load_image(image_input)
 
-        # 4. Detect faces, including a contrast-enhanced fallback for dark portraits.
+        # 4. Detect faces using YuNet, CLAHE-enhanced YuNet, and a Haar fallback.
         detections = self.cv_engine.detector.detect(image, score_threshold=0.40)
         if not any(min(d.bbox.w, d.bbox.h) >= 80 for d in detections):
             lab = cv2.cvtColor(image, cv2.COLOR_BGR2LAB)
             lightness, chroma_a, chroma_b = cv2.split(lab)
-            enhanced = cv2.createCLAHE(
-                clipLimit=2.0, tileGridSize=(8, 8)
-            ).apply(lightness)
+            enhanced = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8)).apply(lightness)
             enhanced_image = cv2.cvtColor(
                 cv2.merge((enhanced, chroma_a, chroma_b)), cv2.COLOR_LAB2BGR
             )
-            detections = self.cv_engine.detector.detect(
+            enhanced_detections = self.cv_engine.detector.detect(
                 enhanced_image, score_threshold=0.40
             )
-        if len(detections) == 0:
+            if enhanced_detections:
+                detections = enhanced_detections
+
+        if not detections:
+            detections = self._haar_detection_fallback(image)
+
+        if not detections:
             raise BiometricProcessingError(
                 message="Enrollment failed: No face was detected in the reference photograph. "
                         "Please provide a well-lit, unobstructed front-facing portrait.",
@@ -105,46 +138,38 @@ class EnrollmentService:
             )
 
         large_detections = [
-            detection for detection in detections if min(detection.bbox.w, detection.bbox.h) >= 80
+            detection for detection in detections
+            if min(detection.bbox.w, detection.bbox.h) >= 80
         ]
-        candidate_detections = large_detections or detections
-        if len(candidate_detections) > 1:
-            # YuNet can return overlapping partial boxes for one large, dark face.
-            # Collapse those boxes before applying the single-face enrollment rule.
-            remaining = list(candidate_detections)
-            grouped = []
-            while remaining:
-                candidate = remaining.pop(0)
-                group = [candidate]
-                for other in remaining[:]:
-                    left = max(candidate.bbox.x, other.bbox.x)
-                    top = max(candidate.bbox.y, other.bbox.y)
-                    right = min(
-                        candidate.bbox.x + candidate.bbox.w,
-                        other.bbox.x + other.bbox.w,
-                    )
-                    bottom = min(
-                        candidate.bbox.y + candidate.bbox.h,
-                        other.bbox.y + other.bbox.h,
-                    )
-                    intersection = max(0, right - left) * max(0, bottom - top)
-                    smaller_area = min(
-                        candidate.bbox.w * candidate.bbox.h,
-                        other.bbox.w * other.bbox.h,
-                    )
-                    if smaller_area and intersection / smaller_area >= 0.40:
-                        group.append(other)
-                        remaining.remove(other)
-                grouped.append(max(group, key=lambda item: item.bbox.w * item.bbox.h))
-            candidate_detections = grouped
+        candidate_detections = non_maximum_suppression(
+            large_detections or detections,
+            iou_threshold=0.35,
+            containment_threshold=0.45,
+        )
         if not candidate_detections:
             raise BiometricProcessingError(
-                message=(
-                    "Enrollment failed: no sufficiently large face was detected. "
-                    "Use a clear portrait where the face is prominent."
-                ),
+                message="Enrollment failed: no sufficiently large face was detected.",
                 details={"student_id": student.student_id, "faces_detected": len(detections)},
             )
+
+        if len(candidate_detections) > 1:
+            ranked = sorted(
+                candidate_detections,
+                key=lambda item: (item.bbox.w * item.bbox.h, item.confidence),
+                reverse=True,
+            )
+            dominant = ranked[0]
+            second = ranked[1]
+            dominant_area = dominant.bbox.w * dominant.bbox.h
+            second_area = second.bbox.w * second.bbox.h
+            clearly_dominant = (
+                dominant.confidence >= 0.65
+                and second_area > 0
+                and dominant_area / second_area >= 2.0
+            )
+            if clearly_dominant:
+                candidate_detections = [dominant]
+
         if len(candidate_detections) > 1:
             raise BiometricProcessingError(
                 message=f"Enrollment failed: Multiple faces ({len(candidate_detections)}) detected. "

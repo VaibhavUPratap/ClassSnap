@@ -10,6 +10,7 @@ from classsnap.models.attendance import (
     AttendanceDetection,
     AttendanceRecord,
     AttendanceSession,
+    ProposedAttendance,
     ProposedMatch,
     ReviewDecision,
 )
@@ -17,5 +18,5 @@ from classsnap.models.attendance import (
 __all__ = [
     "Base", "Student", "FaceTemplate", "AuditEvent",
     "AttendanceSession", "AttendanceDetection", "ProposedMatch", "ReviewDecision",
-    "AttendanceRecord",
+    "AttendanceRecord", "ProposedAttendance",
 ]

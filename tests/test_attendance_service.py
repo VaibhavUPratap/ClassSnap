@@ -7,14 +7,15 @@ from classsnap.services.attendance_service import AttendanceService
 from classsnap.services.roster_service import RosterService
 
 
-def test_session_requires_review_before_confirmation(db_session):
+def test_session_cannot_be_confirmed_before_image_processing(db_session):
+    RosterService.create_student(
+        db_session,
+        StudentCreate(student_id="ATT24AT0009", first_name="Mary", last_name="Jackson"),
+    )
     session = AttendanceService.create_session(db_session, "Math 101")
     AttendanceService.begin_processing(db_session, session.id)
-    AttendanceService.add_proposals(
-        db_session, session.id, [("face-1", "matched_pending_review", None, 0.9, None)]
-    )
 
-    with pytest.raises(ValidationError, match="reviewed"):
+    with pytest.raises(ValidationError, match="expected"):
         AttendanceService.confirm(db_session, session.id)
 
 
@@ -45,8 +46,10 @@ def test_review_and_confirmation_create_unique_attendance_record(db_session):
     assert decisions[0].selected_student_id == student.id
     assert decisions[0].notes == "Confirmed manually"
 
-    with pytest.raises(ValidationError, match="expected"):
-        AttendanceService.confirm(db_session, session.id)
+    # Confirmation is idempotent: a repeat call writes nothing new.
+    again = AttendanceService.confirm(db_session, session.id)
+    assert again.status == "confirmed"
+    assert db_session.query(AttendanceRecord).filter_by(session_id=session.id).count() == 1
 
 
 def test_confirmed_session_supports_audited_correction_only_through_workflow(db_session):
@@ -76,8 +79,16 @@ def test_confirmed_session_supports_audited_correction_only_through_workflow(db_
         reason="Corrected after comparing the seating chart",
     )
 
-    records = db_session.query(AttendanceRecord).filter_by(session_id=session.id).all()
-    assert [record.student_id for record in records] == [second.id]
+    records = {
+        record.student_id: record
+        for record in db_session.query(AttendanceRecord).filter_by(session_id=session.id).all()
+    }
+    present = [sid for sid, record in records.items() if record.attendance_status == "present"]
+    assert present == [second.id]
+    # The wrongly identified student is not silently marked absent.
+    assert records[first.id].attendance_status == "unverified"
+    assert records[first.id].corrected_by == "teacher-2"
+    assert records[second.id].verification_method == "manual_correction"
     decisions = db_session.query(ReviewDecision).filter_by(session_id=session.id).all()
     assert len(decisions) == 2
     assert decisions[-1].decision == "correction_present"

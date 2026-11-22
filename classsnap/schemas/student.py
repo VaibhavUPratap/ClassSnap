@@ -40,12 +40,25 @@ class StudentCreate(StudentBase):
 
 
 class StudentUpdate(BaseModel):
+    student_id: Optional[str] = None
     first_name: Optional[str] = Field(None, min_length=1, max_length=100)
     last_name: Optional[str] = Field(None, min_length=1, max_length=100)
     email: Optional[str] = Field(None, max_length=255)
     is_active: Optional[bool] = None
     has_consent: Optional[bool] = None
     consent_notes: Optional[str] = None
+
+    @field_validator("student_id", mode="before")
+    @classmethod
+    def normalize_updated_usn(cls, value: Optional[str]) -> Optional[str]:
+        if value is None:
+            return value
+        if not isinstance(value, str):
+            return value
+        normalized = value.strip().upper()
+        if not re.fullmatch(USN_PATTERN, normalized):
+            raise ValueError("USN must use the format ENG24AM0107")
+        return normalized
 
 
 class FaceTemplateSummary(BaseModel):
